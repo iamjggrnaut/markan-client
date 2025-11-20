@@ -1,0 +1,50 @@
+.legalPage {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.content {
+  padding: 1rem 0;
+}
+
+.lastUpdated {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 2rem;
+}
+
+.section {
+  margin-bottom: 2rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 1rem;
+    margin-top: 2rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: #374151;
+  }
+
+  ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+    list-style-type: disc;
+
+    li {
+      margin-bottom: 0.5rem;
+      line-height: 1.6;
+      color: #374151;
+    }
+  }
+
+  strong {
+    font-weight: 600;
+    color: #111827;
+  }
+}
+

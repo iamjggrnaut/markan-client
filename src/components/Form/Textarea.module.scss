@@ -1,0 +1,9 @@
+@import './Input.module.scss';
+
+.textarea {
+  @extend .input;
+  min-height: 100px;
+  resize: vertical;
+  font-family: inherit;
+}
+
