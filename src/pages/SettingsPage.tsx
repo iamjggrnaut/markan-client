@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from '../components/Card';
-import { Button, Select } from '../components/Form';
+import { Button, Select, Input } from '../components/Form';
+import { Modal } from '../components/Modal';
 import { apiClient } from '../services/api.client';
 import { pushNotificationService } from '../utils/push-notifications';
 import { usePWA } from '../hooks/usePWA';
@@ -13,6 +14,14 @@ export const SettingsPage = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'notifications' | 'plan' | 'pwa' | 'legal' | 'general'>('profile');
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [isAddIntegrationModalOpen, setIsAddIntegrationModalOpen] = useState(false);
+  const [newIntegration, setNewIntegration] = useState({
+    marketplaceType: 'wildberries',
+    accountName: '',
+    apiKey: '',
+    apiSecret: '',
+    token: '',
+  });
   const { isInstalled, install } = usePWA();
 
   const { data: integrations } = useQuery({
@@ -139,14 +148,59 @@ export const SettingsPage = () => {
     { id: 'legal', label: 'Юридические документы' },
   ];
 
+  const createIntegrationMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiClient.instance.post('/integrations', data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
+      setIsAddIntegrationModalOpen(false);
+      setNewIntegration({
+        marketplaceType: 'wildberries',
+        accountName: '',
+        apiKey: '',
+        apiSecret: '',
+        token: '',
+      });
+      alert('Интеграция успешно добавлена!');
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Ошибка при добавлении интеграции');
+    },
+  });
+
   const handleIntegrationConfigure = (integrationId: string) => {
     // Можно открыть модальное окно или перенаправить на страницу настройки
-    navigate(`/integrations/${integrationId}`);
+    // Пока просто показываем сообщение, что функционал в разработке
+    alert('Функционал настройки интеграции в разработке');
   };
 
   const handleAddIntegration = () => {
-    // Перенаправляем на страницу добавления интеграции или открываем модальное окно
-    navigate('/integrations/new');
+    setIsAddIntegrationModalOpen(true);
+  };
+
+  const handleSubmitIntegration = () => {
+    if (!newIntegration.accountName || !newIntegration.apiKey) {
+      alert('Заполните обязательные поля: название аккаунта и API ключ');
+      return;
+    }
+
+    const payload: any = {
+      marketplaceType: newIntegration.marketplaceType,
+      accountName: newIntegration.accountName,
+      apiKey: newIntegration.apiKey,
+    };
+
+    if (newIntegration.apiSecret) {
+      payload.apiSecret = newIntegration.apiSecret;
+    }
+
+    if (newIntegration.token) {
+      payload.token = newIntegration.token;
+    }
+
+    createIntegrationMutation.mutate(payload);
   };
 
   return (
@@ -314,6 +368,94 @@ export const SettingsPage = () => {
             </Button>
           </Card>
         )}
+
+        <Modal
+          isOpen={isAddIntegrationModalOpen}
+          onClose={() => setIsAddIntegrationModalOpen(false)}
+          title="Добавить интеграцию"
+          size="md"
+          footer={
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => setIsAddIntegrationModalOpen(false)}
+              >
+                Отмена
+              </Button>
+              <Button
+                onClick={handleSubmitIntegration}
+                disabled={createIntegrationMutation.isPending}
+              >
+                {createIntegrationMutation.isPending ? 'Добавление...' : 'Добавить'}
+              </Button>
+            </>
+          }
+        >
+          <div className={styles.integrationForm}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Маркетплейс *</label>
+              <Select
+                value={newIntegration.marketplaceType}
+                onChange={(e) => setNewIntegration({ ...newIntegration, marketplaceType: e.target.value })}
+                options={[
+                  { value: 'wildberries', label: 'Wildberries' },
+                  { value: 'ozon', label: 'Ozon' },
+                ]}
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Название аккаунта *</label>
+              <Input
+                type="text"
+                value={newIntegration.accountName}
+                onChange={(e) => setNewIntegration({ ...newIntegration, accountName: e.target.value })}
+                placeholder="Например: Мой аккаунт Wildberries"
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>API ключ *</label>
+              <Input
+                type="password"
+                value={newIntegration.apiKey}
+                onChange={(e) => setNewIntegration({ ...newIntegration, apiKey: e.target.value })}
+                placeholder="Введите API ключ"
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            {newIntegration.marketplaceType === 'ozon' && (
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>API Secret</label>
+                <Input
+                  type="password"
+                  value={newIntegration.apiSecret}
+                  onChange={(e) => setNewIntegration({ ...newIntegration, apiSecret: e.target.value })}
+                  placeholder="Введите API Secret (для Ozon)"
+                  style={{ width: '100%' }}
+                />
+              </div>
+            )}
+
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Token (опционально)</label>
+              <Input
+                type="password"
+                value={newIntegration.token}
+                onChange={(e) => setNewIntegration({ ...newIntegration, token: e.target.value })}
+                placeholder="Введите токен, если требуется"
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '1rem' }}>
+              * Обязательные поля
+            </p>
+          </div>
+        </Modal>
 
         {activeTab === 'notifications' && (
           <Card title="Настройки уведомлений">
