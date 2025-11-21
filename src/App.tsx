@@ -12,6 +12,7 @@ import { useAuthStore } from './store/auth.store';
 
 // Lazy loading для страниц
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const ProductsPage = lazy(() => import('./pages/ProductsPage').then(m => ({ default: m.ProductsPage })));
 const GeoPage = lazy(() => import('./pages/GeoPage').then(m => ({ default: m.GeoPage })));
@@ -74,6 +75,7 @@ function App() {
                   <Routes>
                     <Route path="/" element={<DashboardPage />} />
                     <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/analytics" element={<AnalyticsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/products" element={<ProductsPage />} />
                     <Route path="/geo" element={<GeoPage />} />
