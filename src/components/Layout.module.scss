@@ -3,12 +3,15 @@
   flex-direction: column;
   min-height: 100vh;
   background-color: var(--color-bg-secondary);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .main {
   flex: 1;
   padding: 2rem;
   margin-left: 250px; // Ширина навигации
+  min-height: 0; // Позволяет контенту сжиматься
 }
 
 @media (max-width: 768px) {
