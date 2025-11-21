@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card } from '../components/Card';
-import { Button, Input, Select } from '../components/Form';
+import { Button } from '../components/Form';
 import { apiClient } from '../services/api.client';
 import { pushNotificationService } from '../utils/push-notifications';
 import { usePWA } from '../hooks/usePWA';
@@ -53,9 +54,6 @@ export const SettingsPage = () => {
   });
 
   const [selectedBillingPeriod, setSelectedBillingPeriod] = useState<string>('annual');
-  const [selectedPlan, setSelectedPlan] = useState<string>('');
-
-  const changePlanMutation = useMutation({
     mutationFn: async ({ planType, billingPeriod }: { planType: string; billingPeriod: string }) => {
       return apiClient.instance.post(`/plans/change/${planType}`, { billingPeriod });
     },
@@ -352,11 +350,11 @@ export const SettingsPage = () => {
                     color: '#111827',
                     transition: 'all 0.2s'
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.backgroundColor = '#f9fafb';
                     e.currentTarget.style.borderColor = '#0284c7';
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.backgroundColor = 'white';
                     e.currentTarget.style.borderColor = '#e5e7eb';
                   }}
@@ -379,11 +377,11 @@ export const SettingsPage = () => {
                     color: '#111827',
                     transition: 'all 0.2s'
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.backgroundColor = '#f9fafb';
                     e.currentTarget.style.borderColor = '#0284c7';
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.backgroundColor = 'white';
                     e.currentTarget.style.borderColor = '#e5e7eb';
                   }}
@@ -406,11 +404,11 @@ export const SettingsPage = () => {
                     color: '#111827',
                     transition: 'all 0.2s'
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.backgroundColor = '#f9fafb';
                     e.currentTarget.style.borderColor = '#0284c7';
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.backgroundColor = 'white';
                     e.currentTarget.style.borderColor = '#e5e7eb';
                   }}
@@ -433,11 +431,11 @@ export const SettingsPage = () => {
                     color: '#111827',
                     transition: 'all 0.2s'
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.backgroundColor = '#f9fafb';
                     e.currentTarget.style.borderColor = '#0284c7';
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.backgroundColor = 'white';
                     e.currentTarget.style.borderColor = '#e5e7eb';
                   }}

@@ -37,11 +37,11 @@ class PushNotificationService {
     }
 
     try {
+      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+      const keyArray = this.urlBase64ToUint8Array(vapidKey);
       const subscription = await this.registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(
-          import.meta.env.VITE_VAPID_PUBLIC_KEY || '',
-        ),
+        applicationServerKey: keyArray.buffer as ArrayBuffer,
       });
 
       return subscription;

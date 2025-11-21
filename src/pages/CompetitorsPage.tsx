@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Table } from '../components/Table';
 import { Card } from '../components/Card';
-import { Button, Input } from '../components/Form';
+import { Button } from '../components/Form';
 import { LineChart } from '../components/Chart';
 import { Modal } from '../components/Modal';
 import { apiClient } from '../services/api.client';

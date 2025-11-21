@@ -78,7 +78,7 @@ export function useForm<T extends Record<string, any>>(
       const value = e.target.value;
       setValues((prev) => ({ ...prev, [name]: value }));
 
-      if (touched[name]) {
+      if (touched[name as string]) {
         validate(name as string);
       }
     },

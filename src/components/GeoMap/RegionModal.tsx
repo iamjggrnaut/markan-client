@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../../../store/auth.store';
+import { useAuthStore } from '../../store/auth.store';
 import { RegionalStats } from './GeoMap';
 import styles from './RegionModal.module.scss';
 
@@ -36,8 +36,9 @@ export const RegionModal: React.FC<RegionModalProps> = ({
         ...(organizationId ? { organizationId } : {}),
       });
 
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/geo/regions/${encodeURIComponent(region)}?${params}`,
+        `${API_URL}/api/v1/geo/regions/${encodeURIComponent(region)}?${params}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

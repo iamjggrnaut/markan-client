@@ -9,7 +9,6 @@ interface GeoMapSVGProps {
   onRegionHover: (region: string | null) => void;
   getRegionValue: (region: string) => number;
   getColorForValue: (value: number) => string;
-  getTooltipContent: (region: string) => string;
 }
 
 // Упрощенная SVG карта России с основными регионами
@@ -22,7 +21,6 @@ export const GeoMapSVG: React.FC<GeoMapSVGProps> = ({
   onRegionHover,
   getRegionValue,
   getColorForValue,
-  getTooltipContent,
 }) => {
   // Маппинг регионов на координаты (упрощенный)
   const regionPaths: Record<string, string> = {

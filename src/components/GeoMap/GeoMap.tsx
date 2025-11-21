@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../../../store/auth.store';
+import { useAuthStore } from '../../store/auth.store';
 import { GeoMapSVG } from './GeoMapSVG';
 import { RegionModal } from './RegionModal';
 import { GeoMapFilters } from './GeoMapFilters';
@@ -57,8 +57,9 @@ export const GeoMap: React.FC<GeoMapProps> = ({
         ...(organizationId ? { organizationId } : {}),
       });
 
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/geo/regions?${params}`,
+        `${API_URL}/api/v1/geo/regions?${params}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -175,7 +176,6 @@ export const GeoMap: React.FC<GeoMapProps> = ({
               onRegionHover={handleRegionHover}
               getRegionValue={getRegionValue}
               getColorForValue={getColorForValue}
-              getTooltipContent={getTooltipContent}
             />
 
             {hoveredRegion && (

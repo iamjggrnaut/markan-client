@@ -1,5 +1,4 @@
 import { ReactNode, useEffect } from 'react';
-import { Button } from '../Form/Button';
 import styles from './Modal.module.scss';
 
 interface ModalProps {

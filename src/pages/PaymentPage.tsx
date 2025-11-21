@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card } from '../components/Card';
-import { Button, Select } from '../components/Form';
+import { Button } from '../components/Form';
 import { apiClient } from '../services/api.client';
 import styles from './PaymentPage.module.scss';
 
@@ -41,9 +41,10 @@ export const PaymentPage = () => {
       return response.data;
     },
     enabled: !!paymentId,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Обновляем каждые 10 секунд, если платеж в ожидании
-      if (data?.status === 'pending' || data?.status === 'uploaded') {
+      const payment = query.state.data as any;
+      if (payment?.status === 'pending' || payment?.status === 'uploaded') {
         return 10000;
       }
       return false;
