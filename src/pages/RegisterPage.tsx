@@ -27,6 +27,7 @@ export const RegisterPage = () => {
       login(
         { id: response.data.user.id, email: response.data.user.email },
         response.data.access_token,
+        response.data.refresh_token,
       );
 
       navigate('/dashboard');

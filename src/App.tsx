@@ -8,6 +8,7 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { Layout } from './components/Layout';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { pushNotificationService } from './utils/push-notifications';
+import { useAuthStore } from './store/auth.store';
 
 // Lazy loading для страниц
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
@@ -25,7 +26,13 @@ const ApiPolicyPage = lazy(() => import('./pages/ApiPolicyPage').then(m => ({ de
 const PaymentPage = lazy(() => import('./pages/PaymentPage').then(m => ({ default: m.PaymentPage })));
 
 function App() {
+  const restoreSession = useAuthStore((state) => state.restoreSession);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
   useEffect(() => {
+    // Восстанавливаем сессию при загрузке приложения
+    restoreSession();
+
     // Инициализируем Service Worker и Push Notifications
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
@@ -40,12 +47,17 @@ function App() {
 
     // Инициализируем Push Notification Service
     pushNotificationService.initialize();
-  }, []);
+  }, [restoreSession]);
   const LoadingFallback = () => (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
       <div>Загрузка...</div>
     </div>
   );
+
+  // Показываем загрузку во время восстановления сессии
+  if (isLoading) {
+    return <LoadingFallback />;
+  }
 
   return (
     <>

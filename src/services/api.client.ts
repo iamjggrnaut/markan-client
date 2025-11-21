@@ -26,11 +26,47 @@ class ApiClient {
     // Обрабатываем ошибки
     this.client.interceptors.response.use(
       (response) => response,
-      (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          useAuthStore.getState().logout();
-          window.location.href = '/login';
+      async (error: AxiosError) => {
+        const originalRequest = error.config as any;
+        
+        // Если получили 401 и это не запрос на refresh или login
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          const { refreshToken, logout } = useAuthStore.getState();
+          
+          // Если нет refresh token, просто выходим
+          if (!refreshToken) {
+            logout();
+            window.location.href = '/login';
+            return Promise.reject(error);
+          }
+
+          // Пытаемся обновить токен
+          try {
+            originalRequest._retry = true;
+            // Создаем отдельный экземпляр axios для refresh, чтобы избежать циклической зависимости
+            const refreshClient = axios.create({ baseURL: API_URL });
+            const response = await refreshClient.post('/auth/refresh', {
+              refresh_token: refreshToken,
+            });
+
+            // Обновляем токен в store
+            useAuthStore.getState().login(
+              useAuthStore.getState().user!,
+              response.data.access_token,
+              response.data.refresh_token
+            );
+
+            // Повторяем оригинальный запрос с новым токеном
+            originalRequest.headers.Authorization = `Bearer ${response.data.access_token}`;
+            return this.client(originalRequest);
+          } catch (refreshError) {
+            // Если refresh не удался, выходим
+            logout();
+            window.location.href = '/login';
+            return Promise.reject(refreshError);
+          }
         }
+        
         return Promise.reject(error);
       },
     );

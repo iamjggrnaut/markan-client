@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { apiClient } from '../services/api.client';
 
 interface User {
   id: string;
@@ -12,32 +13,78 @@ interface User {
 interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
-  login: (user: User, token: string) => void;
+  isLoading: boolean;
+  login: (user: User, token: string, refreshToken: string) => void;
   logout: () => void;
+  restoreSession: () => Promise<void>;
 }
 
-// Безопасное хранение: токены в памяти, только user в localStorage
+// Сохраняем refresh token в localStorage для восстановления сессии
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
-      token: null, // НЕ сохраняется в localStorage
+      token: null,
+      refreshToken: null,
       isAuthenticated: false,
-      login: (user, token) => {
-        set({ user, token, isAuthenticated: true });
-        // Токен хранится только в памяти, не в localStorage
+      isLoading: true,
+      login: (user, token, refreshToken) => {
+        set({ user, token, refreshToken, isAuthenticated: true, isLoading: false });
       },
       logout: () => {
-        set({ user: null, token: null, isAuthenticated: false });
+        // Отзываем refresh token на сервере (не блокируем, если ошибка)
+        const { refreshToken } = get();
+        if (refreshToken) {
+          apiClient.instance.post('/auth/logout', { refresh_token: refreshToken }).catch(() => {
+            // Игнорируем ошибки при выходе
+          });
+        }
+        set({ user: null, token: null, refreshToken: null, isAuthenticated: false, isLoading: false });
+      },
+      restoreSession: async () => {
+        const { refreshToken, user } = get();
+        
+        // Если нет refresh token, сессия не может быть восстановлена
+        if (!refreshToken || !user) {
+          set({ isAuthenticated: false, isLoading: false });
+          return;
+        }
+
+        try {
+          // Пытаемся обновить токен используя refresh token
+          const response = await apiClient.instance.post('/auth/refresh', {
+            refresh_token: refreshToken,
+          });
+
+          // Восстанавливаем сессию с новыми токенами
+          set({
+            token: response.data.access_token,
+            refreshToken: response.data.refresh_token,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (error) {
+          // Если refresh token недействителен, очищаем состояние
+          set({
+            user: null,
+            token: null,
+            refreshToken: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
       },
     }),
     {
       name: 'auth-storage',
       partialize: (state) => ({
-        // Сохраняем только user, НЕ token
+        // Сохраняем user и refreshToken для восстановления сессии
         user: state.user,
-        isAuthenticated: false, // Всегда false при загрузке
+        refreshToken: state.refreshToken,
+        // НЕ сохраняем access token (он короткоживущий)
+        // isAuthenticated всегда false при загрузке - будет восстановлено через restoreSession
       }),
     },
   ),
