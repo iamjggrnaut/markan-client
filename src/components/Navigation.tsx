@@ -7,7 +7,6 @@ import {
   FaMapMarkedAlt, 
   FaFileAlt, 
   FaCog, 
-  FaBell,
   FaBolt,
   FaBars,
   FaTimes
