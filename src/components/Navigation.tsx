@@ -5,17 +5,14 @@ import {
   FaBox, 
   FaChartLine, 
   FaMapMarkedAlt, 
-  FaUsers, 
   FaFileAlt, 
   FaCog, 
-  FaLock,
   FaBell,
   FaBolt,
   FaBars,
   FaTimes
 } from 'react-icons/fa';
 import { useAuthStore } from '../store/auth.store';
-import { ThemeToggle } from './ThemeToggle/ThemeToggle';
 import styles from './Navigation.module.scss';
 
 export const Navigation = () => {

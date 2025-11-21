@@ -9,8 +9,6 @@ import styles from './AnalyticsPage.module.scss';
 export const AnalyticsPage = () => {
   const [period, setPeriod] = useState('month');
   const [source, setSource] = useState('marketplace');
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
 
   // Маппинг периодов
   const periodMap: Record<string, number> = {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../services/api.client';
 import { Card } from '../components/Card';
-import { LineChart, BarChart } from '../components/Chart';
+import { LineChart } from '../components/Chart';
 import { Filters } from '../components/Filters';
 import { Table } from '../components/Table';
 import { FaArrowUp } from 'react-icons/fa';
@@ -72,22 +72,6 @@ export const DashboardPage = () => {
     ],
   };
 
-  const topProductsData = {
-    labels: stats?.topProducts?.slice(0, 5).map((p: any) => p.name) || ['Товар 1', 'Товар 2', 'Товар 3', 'Товар 4', 'Товар 5'],
-    datasets: [
-      {
-        label: 'Продажи',
-        data: stats?.topProducts?.slice(0, 5).map((p: any) => p.amount) || [45000, 38000, 32000, 28000, 25000],
-        backgroundColor: [
-          'rgba(54, 198, 120, 0.8)',
-          'rgba(54, 198, 120, 0.6)',
-          'rgba(54, 198, 120, 0.4)',
-          'rgba(54, 198, 120, 0.3)',
-          'rgba(54, 198, 120, 0.2)',
-        ],
-      },
-    ],
-  };
 
   if (statsLoading || kpiLoading) {
     return <div className={styles.loading}>Загрузка...</div>;
