@@ -1,0 +1,147 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background-color: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
+  z-index: 1001;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  height: 64px;
+}
+
+.leftSection {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logoIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all 0.2s;
+  font-size: 1rem;
+  text-decoration: none;
+
+  &:hover {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+  }
+}
+
+.separator {
+  width: 1px;
+  height: 24px;
+  background-color: var(--color-border);
+  margin: 0 0.5rem;
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.userName {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.logoutBtn {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--color-accent-hover);
+  }
+}
+
+.userAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .headerContent {
+    padding: 0 1rem;
+  }
+
+  .userInfo {
+    display: none;
+  }
+
+  .logoText {
+    font-size: 1.25rem;
+  }
+}
+

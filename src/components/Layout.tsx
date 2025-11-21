@@ -1,4 +1,5 @@
 import { ReactNode, useEffect } from 'react';
+import { Header } from './Header';
 import { Navigation } from './Navigation';
 import { Footer } from './Footer';
 import styles from './Layout.module.scss';
@@ -17,6 +18,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className={styles.layout}>
+      <Header />
       <Navigation />
       <main className={styles.main}>{children}</main>
       <Footer />

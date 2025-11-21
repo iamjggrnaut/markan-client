@@ -10,14 +10,14 @@
 .main {
   flex: 1;
   padding: 0;
-  margin-top: 64px; // Высота навигации
-  min-height: calc(100vh - 64px);
+  margin-top: 112px; /* 64px (header) + 48px (navigation) */
+  min-height: calc(100vh - 112px);
   width: 100%;
 }
 
 @media (max-width: 768px) {
   .main {
-    margin-top: auto; // Навигация будет адаптивной
+    margin-top: 112px; /* Header + Navigation */
   }
 }
 
