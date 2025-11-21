@@ -26,7 +26,7 @@ export const Navigation = () => {
     { path: '/products', label: 'Расчет поставок', icon: FaBox },
     { path: '/geo', label: 'География заказов', icon: FaMapMarkedAlt },
     { path: '/analytics', label: 'Товарная аналитика', icon: FaChartLine },
-    { path: '/products', label: 'Лента заказов', icon: FaBox },
+    { path: '/orders', label: 'Лента заказов', icon: FaBox },
     { path: '/reports', label: 'Еженедельные отчеты', icon: FaFileAlt },
   ];
 
@@ -36,6 +36,7 @@ export const Navigation = () => {
     if (path.startsWith('/geo')) return '/geo';
     if (path.startsWith('/analytics')) return '/analytics';
     if (path.startsWith('/products')) return '/products';
+    if (path.startsWith('/orders')) return '/orders';
     if (path.startsWith('/reports')) return '/reports';
     return path;
   };
@@ -91,16 +92,13 @@ export const Navigation = () => {
         </div>
 
         <div className={styles.rightSection}>
-          <div className={styles.optimization}>
+          <Link to="/optimization" className={styles.optimization}>
             <FaBolt className={styles.optimizationIcon} />
             <span>Оптимизация</span>
-          </div>
-          <button className={styles.iconButton} title="Уведомления">
-            <FaBell />
-          </button>
-          <button className={styles.iconButton} title="Настройки">
+          </Link>
+          <Link to="/settings" className={styles.iconButton} title="Настройки">
             <FaCog />
-          </button>
+          </Link>
           <div className={styles.userSection}>
             <div className={styles.userAvatar}>
               {user?.firstName?.[0] || user?.email?.[0] || 'U'}

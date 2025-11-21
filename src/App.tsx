@@ -25,6 +25,8 @@ const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(m => ({ defaul
 const RefundPage = lazy(() => import('./pages/RefundPage').then(m => ({ default: m.RefundPage })));
 const ApiPolicyPage = lazy(() => import('./pages/ApiPolicyPage').then(m => ({ default: m.ApiPolicyPage })));
 const PaymentPage = lazy(() => import('./pages/PaymentPage').then(m => ({ default: m.PaymentPage })));
+const OrdersPage = lazy(() => import('./pages/OrdersPage').then(m => ({ default: m.OrdersPage })));
+const OptimizationPage = lazy(() => import('./pages/OptimizationPage').then(m => ({ default: m.OptimizationPage })));
 
 function App() {
   const restoreSession = useAuthStore((state) => state.restoreSession);
@@ -78,7 +80,9 @@ function App() {
                     <Route path="/analytics" element={<AnalyticsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/products" element={<ProductsPage />} />
+                    <Route path="/orders" element={<OrdersPage />} />
                     <Route path="/geo" element={<GeoPage />} />
+                    <Route path="/optimization" element={<OptimizationPage />} />
                     <Route path="/competitors" element={<CompetitorsPage />} />
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
