@@ -193,6 +193,7 @@ export const ProductsPage = () => {
           </Card>
         </div>
       </div>
+      </div>
 
       <Modal
         isOpen={isModalOpen}

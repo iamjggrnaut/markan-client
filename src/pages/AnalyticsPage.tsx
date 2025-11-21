@@ -329,7 +329,6 @@ export const AnalyticsPage = () => {
           </Card>
         </div>
       )}
-      </div>
     </div>
   );
 };
