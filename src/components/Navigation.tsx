@@ -1,5 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FaChartBar, FaBox, FaChartLine, FaMapMarkedAlt, FaFileAlt, FaBolt } from 'react-icons/fa';
+import { 
+  // FaChartBar, FaBox, FaChartLine, FaMapMarkedAlt, FaFileAlt, 
+  FaBolt } from 'react-icons/fa';
 import styles from './Navigation.module.scss';
 
 export const Navigation = () => {
