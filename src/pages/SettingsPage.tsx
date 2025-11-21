@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from '../components/Card';
 import { Button, Select, Input } from '../components/Form';
@@ -10,7 +10,6 @@ import { usePWA } from '../hooks/usePWA';
 import styles from './SettingsPage.module.scss';
 
 export const SettingsPage = () => {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'notifications' | 'plan' | 'pwa' | 'legal' | 'general'>('profile');
   const [pushEnabled, setPushEnabled] = useState(false);
@@ -170,7 +169,7 @@ export const SettingsPage = () => {
     },
   });
 
-  const handleIntegrationConfigure = (integrationId: string) => {
+  const handleIntegrationConfigure = () => {
     // Можно открыть модальное окно или перенаправить на страницу настройки
     // Пока просто показываем сообщение, что функционал в разработке
     alert('Функционал настройки интеграции в разработке');
@@ -350,7 +349,7 @@ export const SettingsPage = () => {
                     <Button 
                       size="sm" 
                       variant="secondary"
-                      onClick={() => handleIntegrationConfigure(integration.id)}
+                      onClick={handleIntegrationConfigure}
                     >
                       Настроить
                     </Button>
