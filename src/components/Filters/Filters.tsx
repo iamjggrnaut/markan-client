@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Select } from '../Form';
 import styles from './Filters.module.scss';
 
 export interface FilterOption {
@@ -46,14 +47,31 @@ export const Filters = ({
     region: selectedRegion || '',
   });
 
-  const handleFilterClick = (type: 'period' | 'source' | 'region', value: string) => {
-    setActiveFilters((prev) => ({ ...prev, [type]: value }));
-    
-    if (type === 'period' && onPeriodChange) {
+  useEffect(() => {
+    setActiveFilters({
+      period: selectedPeriod,
+      source: selectedSource,
+      region: selectedRegion || '',
+    });
+  }, [selectedPeriod, selectedSource, selectedRegion]);
+
+  const handlePeriodChange = (value: string) => {
+    setActiveFilters((prev) => ({ ...prev, period: value }));
+    if (onPeriodChange) {
       onPeriodChange(value);
-    } else if (type === 'source' && onSourceChange) {
+    }
+  };
+
+  const handleSourceChange = (value: string) => {
+    setActiveFilters((prev) => ({ ...prev, source: value }));
+    if (onSourceChange) {
       onSourceChange(value);
-    } else if (type === 'region' && onRegionChange) {
+    }
+  };
+
+  const handleRegionChange = (value: string) => {
+    setActiveFilters((prev) => ({ ...prev, region: value }));
+    if (onRegionChange) {
       onRegionChange(value);
     }
   };
@@ -61,54 +79,37 @@ export const Filters = ({
   return (
     <div className={styles.filters}>
       <div className={styles.filterGroup}>
-        {period.map((option) => (
-          <button
-            key={option.value}
-            className={`${styles.filterButton} ${
-              activeFilters.period === option.value ? styles.active : ''
-            }`}
-            onClick={() => handleFilterClick('period', option.value)}
-          >
-            {option.label}
-          </button>
-        ))}
+        <Select
+          options={period}
+          value={activeFilters.period}
+          onChange={(e) => handlePeriodChange(e.target.value)}
+          className={styles.filterSelect}
+          style={{ margin: 0 }}
+        />
       </div>
 
       <div className={styles.filterGroup}>
-        {source.map((option) => (
-          <button
-            key={option.value}
-            className={`${styles.filterButton} ${
-              activeFilters.source === option.value ? styles.active : ''
-            }`}
-            onClick={() => handleFilterClick('source', option.value)}
-          >
-            {option.label}
-          </button>
-        ))}
+        <Select
+          options={source}
+          value={activeFilters.source}
+          onChange={(e) => handleSourceChange(e.target.value)}
+          className={styles.filterSelect}
+          style={{ margin: 0 }}
+        />
       </div>
 
       {showRegions && (
         <div className={styles.filterGroup}>
-          <button
-            className={`${styles.filterButton} ${
-              activeFilters.region === '' ? styles.active : ''
-            }`}
-            onClick={() => handleFilterClick('region', '')}
-          >
-            По регионам
-          </button>
-          {regions.map((region) => (
-            <button
-              key={region.value}
-              className={`${styles.filterButton} ${
-                activeFilters.region === region.value ? styles.active : ''
-              }`}
-              onClick={() => handleFilterClick('region', region.value)}
-            >
-              {region.label}
-            </button>
-          ))}
+          <Select
+            options={[
+              { value: '', label: 'По регионам' },
+              ...regions,
+            ]}
+            value={activeFilters.region}
+            onChange={(e) => handleRegionChange(e.target.value)}
+            className={styles.filterSelect}
+            style={{ margin: 0 }}
+          />
         </div>
       )}
     </div>

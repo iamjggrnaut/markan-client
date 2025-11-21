@@ -7,6 +7,7 @@ import {
   FaMapMarkedAlt, 
   FaFileAlt, 
   FaCog, 
+  FaBell,
   FaBolt,
   FaBars,
   FaTimes
@@ -95,6 +96,9 @@ export const Navigation = () => {
             <FaBolt className={styles.optimizationIcon} />
             <span>Оптимизация</span>
           </Link>
+          <Link to="/settings" className={styles.iconButton} title="Уведомления">
+            <FaBell />
+          </Link>
           <Link to="/settings" className={styles.iconButton} title="Настройки">
             <FaCog />
           </Link>
@@ -105,7 +109,7 @@ export const Navigation = () => {
             <div className={styles.userInfo}>
               <span className={styles.userName}>
                 {user?.firstName && user?.lastName 
-                  ? `${user.firstName} ${user.lastName[0]}.` 
+                  ? `${user.firstName} ${user.lastName}` 
                   : user?.firstName || user?.email || 'Пользователь'}
               </span>
               <button onClick={logout} className={styles.logoutBtn}>
