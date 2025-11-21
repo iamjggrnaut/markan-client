@@ -32,6 +32,11 @@ export function Table<T extends Record<string, any>>({
     );
   }
 
+  // Проверяем, что data - это массив
+  if (!Array.isArray(data)) {
+    return <div className={styles.empty}>Ошибка: данные не являются массивом</div>;
+  }
+
   if (data.length === 0) {
     return <div className={styles.empty}>{emptyMessage}</div>;
   }

@@ -12,7 +12,7 @@ export const ProductsPage = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: products, isLoading } = useQuery({
+  const { data: productsData, isLoading } = useQuery({
     queryKey: ['products', search],
     queryFn: async () => {
       const response = await apiClient.instance.get('/products', {
@@ -21,6 +21,11 @@ export const ProductsPage = () => {
       return response.data;
     },
   });
+
+  // Извлекаем массив товаров из ответа (может быть объект с полем products или массив)
+  const products = Array.isArray(productsData) 
+    ? productsData 
+    : (productsData?.products || []);
 
   const { data: abcAnalysis } = useQuery({
     queryKey: ['abc-analysis'],
