@@ -52,7 +52,12 @@ export const ProfilePage = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['user-profile'] });
       if (data.email !== user?.email) {
-        login({ ...user!, email: data.email }, useAuthStore.getState().token!);
+        const state = useAuthStore.getState();
+        login(
+          { ...user!, email: data.email },
+          state.token!,
+          state.refreshToken!,
+        );
       }
       setSuccess('Профиль успешно обновлен');
       setTimeout(() => setSuccess(''), 3000);
