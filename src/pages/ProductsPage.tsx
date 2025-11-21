@@ -30,12 +30,13 @@ export const ProductsPage = () => {
     },
   });
 
-  const { data: stockForecast } = useQuery({
-    queryKey: ['stock-forecast'],
+  const { data: stockForecast, error: stockForecastError } = useQuery({
+    queryKey: ['reorder-recommendations'],
     queryFn: async () => {
-      const response = await apiClient.instance.get('/products/stock-forecast');
+      const response = await apiClient.instance.get('/products/reorder-recommendations');
       return response.data;
     },
+    retry: false, // Не повторять запрос при ошибке
   });
 
   const columns = [
@@ -141,29 +142,29 @@ export const ProductsPage = () => {
           </Card>
 
           <Card title="Прогноз остатков">
-            {stockForecast ? (
+            {stockForecastError ? (
+              <div style={{ color: 'var(--color-error)', padding: '1rem', fontSize: '0.875rem' }}>
+                Ошибка загрузки прогноза остатков
+              </div>
+            ) : stockForecast ? (
               <div className={styles.forecastStats}>
-                <div className={styles.forecastItem}>
-                  <span className={styles.forecastLabel}>Низкий остаток:</span>
-                  <span className={styles.forecastValue}>
-                    {stockForecast.lowStock?.length || 0} товаров
-                  </span>
-                </div>
                 <div className={styles.forecastItem}>
                   <span className={styles.forecastLabel}>
                     Рекомендуется заказ:
                   </span>
                   <span className={styles.forecastValue}>
-                    {stockForecast.recommendedOrder?.length || 0} товаров
+                    {Array.isArray(stockForecast) ? stockForecast.length : 0} товаров
                   </span>
                 </div>
-                {stockForecast.lowStock && stockForecast.lowStock.length > 0 && (
+                {Array.isArray(stockForecast) && stockForecast.length > 0 && (
                   <div className={styles.forecastList}>
-                    <h4>Товары с низким остатком:</h4>
+                    <h4>Товары, требующие дозаказа:</h4>
                     <ul>
-                      {stockForecast.lowStock.slice(0, 5).map((item: any) => (
-                        <li key={item.productId}>
-                          {item.productName} - остаток: {item.currentStock}
+                      {stockForecast.slice(0, 5).map((item: any) => (
+                        <li key={item.product?.id || item.id}>
+                          {item.product?.name || item.name || 'Неизвестный товар'} - 
+                          остаток: {item.currentStock || 0}, 
+                          дней до исчерпания: {item.forecastDepletionDays || 'N/A'}
                         </li>
                       ))}
                     </ul>
