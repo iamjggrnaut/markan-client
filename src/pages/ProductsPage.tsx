@@ -4,6 +4,7 @@ import { Table } from '../components/Table';
 import { Card } from '../components/Card';
 import { Button, Input } from '../components/Form';
 import { Modal } from '../components/Modal';
+import { Filters } from '../components/Filters';
 import { apiClient } from '../services/api.client';
 import styles from './ProductsPage.module.scss';
 
@@ -11,6 +12,8 @@ export const ProductsPage = () => {
   const [search, setSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [period, setPeriod] = useState('month');
+  const [source, setSource] = useState('marketplace');
 
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['products', search],
@@ -94,17 +97,25 @@ export const ProductsPage = () => {
 
   return (
     <div className={styles.products}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Товары</h1>
-        <div className={styles.actions}>
-          <Input
-            placeholder="Поиск товаров..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ width: '300px' }}
-          />
+      <Filters
+        selectedPeriod={period}
+        selectedSource={source}
+        onPeriodChange={setPeriod}
+        onSourceChange={setSource}
+      />
+
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Товары</h1>
+          <div className={styles.actions}>
+            <Input
+              placeholder="Поиск товаров..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ width: '300px' }}
+            />
+          </div>
         </div>
-      </div>
 
       <div className={styles.grid}>
         <div className={styles.main}>

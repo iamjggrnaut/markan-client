@@ -1,7 +1,10 @@
 .analytics {
+  min-height: 100vh;
+  background-color: var(--color-bg-primary);
+}
+
+.content {
   padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
 }
 
 .header {

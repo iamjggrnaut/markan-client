@@ -3,33 +3,30 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../services/api.client';
 import { Card } from '../components/Card';
 import { LineChart, BarChart } from '../components/Chart';
-import { Select } from '../components/Form';
+import { Filters } from '../components/Filters';
 import styles from './AnalyticsPage.module.scss';
 
 export const AnalyticsPage = () => {
-  const [period, setPeriod] = useState<'7d' | '30d' | '90d' | 'custom'>('30d');
+  const [period, setPeriod] = useState('month');
+  const [source, setSource] = useState('marketplace');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
+
+  // Маппинг периодов
+  const periodMap: Record<string, number> = {
+    week: 7,
+    month: 30,
+    quarter: 90,
+    year: 365,
+  };
 
   // Вычисляем даты на основе периода
   const getDateRange = () => {
     const end = new Date();
     let start = new Date();
 
-    switch (period) {
-      case '7d':
-        start.setDate(end.getDate() - 7);
-        break;
-      case '30d':
-        start.setDate(end.getDate() - 30);
-        break;
-      case '90d':
-        start.setDate(end.getDate() - 90);
-        break;
-      case 'custom':
-        start = startDate ? new Date(startDate) : new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-    }
+    const days = periodMap[period] || 30;
+    start.setDate(end.getDate() - days);
 
     return {
       startDate: start.toISOString().split('T')[0],
@@ -139,39 +136,12 @@ export const AnalyticsPage = () => {
 
   return (
     <div className={styles.analytics}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Аналитика</h1>
-        <div className={styles.controls}>
-          <Select
-            options={[
-              { value: '7d', label: '7 дней' },
-              { value: '30d', label: '30 дней' },
-              { value: '90d', label: '90 дней' },
-              { value: 'custom', label: 'Произвольный период' },
-            ]}
-            value={period}
-            onChange={(e) => setPeriod(e.target.value as any)}
-            style={{ width: '200px' }}
-          />
-          {period === 'custom' && (
-            <div className={styles.dateInputs}>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className={styles.dateInput}
-              />
-              <span>—</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className={styles.dateInput}
-              />
-            </div>
-          )}
-        </div>
-      </div>
+      <Filters
+        selectedPeriod={period}
+        selectedSource={source}
+        onPeriodChange={setPeriod}
+        onSourceChange={setSource}
+      />
 
       {/* KPI метрики */}
       {kpi && (
@@ -359,6 +329,7 @@ export const AnalyticsPage = () => {
           </Card>
         </div>
       )}
+      </div>
     </div>
   );
 };

@@ -1,4 +1,9 @@
 .products {
+  min-height: 100vh;
+  background-color: var(--color-bg-primary);
+}
+
+.content {
   padding: 2rem;
 }
 

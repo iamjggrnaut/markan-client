@@ -1,0 +1,57 @@
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  background-color: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
+  margin-top: 64px;
+}
+
+.filterGroup {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filterButton {
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: var(--color-bg-secondary);
+    border-color: var(--color-border-dark);
+    color: var(--color-text-primary);
+  }
+
+  &.active {
+    background-color: var(--color-bg-secondary);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    font-weight: 500;
+  }
+}
+
+@media (max-width: 768px) {
+  .filters {
+    padding: 0.75rem 1rem;
+    margin-top: auto;
+  }
+
+  .filterGroup {
+    gap: 0.375rem;
+  }
+
+  .filterButton {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+}
+
