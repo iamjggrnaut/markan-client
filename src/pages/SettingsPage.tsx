@@ -1,38 +1,81 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from '../components/Card';
-import { Button } from '../components/Form';
+import { Button, Select } from '../components/Form';
 import { apiClient } from '../services/api.client';
 import { pushNotificationService } from '../utils/push-notifications';
 import { usePWA } from '../hooks/usePWA';
 import styles from './SettingsPage.module.scss';
 
 export const SettingsPage = () => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'notifications' | 'plan' | 'pwa' | 'legal'>('profile');
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'notifications' | 'plan' | 'pwa' | 'legal' | 'general'>('profile');
   const [pushEnabled, setPushEnabled] = useState(false);
   const { isInstalled, install } = usePWA();
 
   const { data: integrations } = useQuery({
     queryKey: ['integrations'],
     queryFn: async () => {
-      const response = await apiClient.instance.get('/integrations/accounts');
+      const response = await apiClient.instance.get('/integrations');
       return response.data;
     },
   });
 
-  const { data: notifications } = useQuery({
+  const { data: notificationsData } = useQuery({
     queryKey: ['notification-preferences'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/notifications/preferences');
+      const prefs = response.data || [];
+      // Преобразуем массив в объект для удобства
+      const prefsMap: Record<string, Record<string, boolean>> = {};
+      prefs.forEach((pref: any) => {
+        if (!prefsMap[pref.type]) {
+          prefsMap[pref.type] = {};
+        }
+        prefsMap[pref.type][pref.channel] = pref.enabled;
+      });
+      return prefsMap;
+    },
+  });
+
+  const { data: userSettings } = useQuery({
+    queryKey: ['user-settings'],
+    queryFn: async () => {
+      const response = await apiClient.instance.get('/users/me/settings');
       return response.data;
+    },
+  });
+
+  const updateNotificationPreference = useMutation({
+    mutationFn: async ({ type, channel, enabled }: { type: string; channel: string; enabled: boolean }) => {
+      const response = await apiClient.instance.post('/notifications/preferences', {
+        type,
+        channel,
+        enabled,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notification-preferences'] });
+    },
+  });
+
+  const updateUserSettings = useMutation({
+    mutationFn: async (settings: any) => {
+      const response = await apiClient.instance.put('/users/me/settings', settings);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-settings'] });
     },
   });
 
   const { data: userPlan } = useQuery({
     queryKey: ['user-plan'],
     queryFn: async () => {
-      const response = await apiClient.instance.get('/users/profile');
+      const response = await apiClient.instance.get('/users/me');
       return response.data.plan;
     },
   });
@@ -88,12 +131,23 @@ export const SettingsPage = () => {
 
   const tabs = [
     { id: 'profile', label: 'Профиль' },
+    { id: 'general', label: 'Общие настройки' },
     { id: 'integrations', label: 'Интеграции' },
     { id: 'notifications', label: 'Уведомления' },
     { id: 'plan', label: 'Тариф' },
     { id: 'pwa', label: 'PWA' },
     { id: 'legal', label: 'Юридические документы' },
   ];
+
+  const handleIntegrationConfigure = (integrationId: string) => {
+    // Можно открыть модальное окно или перенаправить на страницу настройки
+    navigate(`/integrations/${integrationId}`);
+  };
+
+  const handleAddIntegration = () => {
+    // Перенаправляем на страницу добавления интеграции или открываем модальное окно
+    navigate('/integrations/new');
+  };
 
   return (
     <div className={styles.settings}>
@@ -121,6 +175,112 @@ export const SettingsPage = () => {
           </Card>
         )}
 
+        {activeTab === 'general' && (
+          <Card title="Общие настройки">
+            {userSettings ? (
+              <div className={styles.generalSettings}>
+                <div className={styles.settingItem}>
+                  <label className={styles.settingLabel}>Язык интерфейса</label>
+                  <Select
+                    value={userSettings.language || 'ru'}
+                    onChange={(e) => {
+                      updateUserSettings.mutate({
+                        ...userSettings,
+                        language: e.target.value,
+                      });
+                    }}
+                    options={[
+                      { value: 'ru', label: 'Русский' },
+                      { value: 'en', label: 'English' },
+                    ]}
+                    style={{ width: '200px' }}
+                  />
+                </div>
+
+                <div className={styles.settingItem}>
+                  <label className={styles.settingLabel}>Часовой пояс</label>
+                  <Select
+                    value={userSettings.timezone || 'Europe/Moscow'}
+                    onChange={(e) => {
+                      updateUserSettings.mutate({
+                        ...userSettings,
+                        timezone: e.target.value,
+                      });
+                    }}
+                    options={[
+                      { value: 'Europe/Moscow', label: 'Москва (UTC+3)' },
+                      { value: 'Europe/Kiev', label: 'Киев (UTC+2)' },
+                      { value: 'Europe/Minsk', label: 'Минск (UTC+3)' },
+                      { value: 'Asia/Almaty', label: 'Алматы (UTC+6)' },
+                      { value: 'UTC', label: 'UTC' },
+                    ]}
+                    style={{ width: '200px' }}
+                  />
+                </div>
+
+                <div className={styles.settingItem}>
+                  <label className={styles.settingLabel}>
+                    <input
+                      type="checkbox"
+                      checked={userSettings.emailNotifications !== false}
+                      onChange={(e) => {
+                        updateUserSettings.mutate({
+                          ...userSettings,
+                          emailNotifications: e.target.checked,
+                        });
+                      }}
+                      style={{ marginRight: '0.5rem' }}
+                    />
+                    Email уведомления
+                  </label>
+                </div>
+
+                <div className={styles.settingItem}>
+                  <label className={styles.settingLabel}>
+                    <input
+                      type="checkbox"
+                      checked={userSettings.pushNotifications !== false}
+                      onChange={(e) => {
+                        updateUserSettings.mutate({
+                          ...userSettings,
+                          pushNotifications: e.target.checked,
+                        });
+                      }}
+                      style={{ marginRight: '0.5rem' }}
+                    />
+                    Push уведомления
+                  </label>
+                </div>
+
+                <div className={styles.settingItem}>
+                  <label className={styles.settingLabel}>
+                    <input
+                      type="checkbox"
+                      checked={userSettings.telegramNotifications !== false}
+                      onChange={(e) => {
+                        updateUserSettings.mutate({
+                          ...userSettings,
+                          telegramNotifications: e.target.checked,
+                        });
+                      }}
+                      style={{ marginRight: '0.5rem' }}
+                    />
+                    Telegram уведомления
+                  </label>
+                </div>
+
+                {updateUserSettings.isPending && (
+                  <p style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '1rem' }}>
+                    Сохранение...
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p>Загрузка...</p>
+            )}
+          </Card>
+        )}
+
         {activeTab === 'integrations' && (
           <Card title="Интеграции с маркетплейсами">
             {integrations && integrations.length > 0 ? (
@@ -128,12 +288,16 @@ export const SettingsPage = () => {
                 {integrations.map((integration: any) => (
                   <div key={integration.id} className={styles.integrationItem}>
                     <div>
-                      <h3>{integration.marketplace}</h3>
+                      <h3>{integration.marketplaceType || integration.marketplace}</h3>
                       <p className={styles.integrationStatus}>
                         {integration.isActive ? 'Активна' : 'Неактивна'}
                       </p>
                     </div>
-                    <Button size="sm" variant="secondary">
+                    <Button 
+                      size="sm" 
+                      variant="secondary"
+                      onClick={() => handleIntegrationConfigure(integration.id)}
+                    >
                       Настроить
                     </Button>
                   </div>
@@ -142,7 +306,10 @@ export const SettingsPage = () => {
             ) : (
               <p>Интеграции не настроены</p>
             )}
-            <Button style={{ marginTop: '1rem' }}>
+            <Button 
+              style={{ marginTop: '1rem' }}
+              onClick={handleAddIntegration}
+            >
               Добавить интеграцию
             </Button>
           </Card>
@@ -150,9 +317,84 @@ export const SettingsPage = () => {
 
         {activeTab === 'notifications' && (
           <Card title="Настройки уведомлений">
-            {notifications ? (
+            {notificationsData ? (
               <div className={styles.notificationsSettings}>
-                <p>Настройки уведомлений будут здесь</p>
+                <div className={styles.notificationSection}>
+                  <h3>Типы уведомлений</h3>
+                  <div className={styles.notificationTypes}>
+                    {[
+                      { type: 'new_order', label: 'Новые заказы' },
+                      { type: 'low_stock', label: 'Низкий остаток товара' },
+                      { type: 'sales_drop', label: 'Падение продаж' },
+                      { type: 'price_change', label: 'Изменение цены' },
+                      { type: 'competitor_price_change', label: 'Изменение цены конкурента' },
+                      { type: 'anomaly_detected', label: 'Обнаружена аномалия' },
+                      { type: 'sync_completed', label: 'Синхронизация завершена' },
+                      { type: 'sync_failed', label: 'Ошибка синхронизации' },
+                      { type: 'report_ready', label: 'Отчет готов' },
+                    ].map(({ type, label }) => {
+                      const typePrefs = notificationsData[type] || {};
+                      return (
+                        <div key={type} className={styles.notificationType}>
+                          <h4 style={{ marginBottom: '0.5rem' }}>{label}</h4>
+                          <div className={styles.channelSettings}>
+                            <label className={styles.channelLabel}>
+                              <input
+                                type="checkbox"
+                                checked={typePrefs.email !== false}
+                                onChange={(e) => {
+                                  updateNotificationPreference.mutate({
+                                    type,
+                                    channel: 'email',
+                                    enabled: e.target.checked,
+                                  });
+                                }}
+                                style={{ marginRight: '0.5rem' }}
+                              />
+                              Email
+                            </label>
+                            <label className={styles.channelLabel}>
+                              <input
+                                type="checkbox"
+                                checked={typePrefs.push !== false}
+                                onChange={(e) => {
+                                  updateNotificationPreference.mutate({
+                                    type,
+                                    channel: 'push',
+                                    enabled: e.target.checked,
+                                  });
+                                }}
+                                style={{ marginRight: '0.5rem' }}
+                              />
+                              Push
+                            </label>
+                            <label className={styles.channelLabel}>
+                              <input
+                                type="checkbox"
+                                checked={typePrefs.telegram !== false}
+                                onChange={(e) => {
+                                  updateNotificationPreference.mutate({
+                                    type,
+                                    channel: 'telegram',
+                                    enabled: e.target.checked,
+                                  });
+                                }}
+                                style={{ marginRight: '0.5rem' }}
+                              />
+                              Telegram
+                            </label>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {updateNotificationPreference.isPending && (
+                  <p style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '1rem' }}>
+                    Сохранение...
+                  </p>
+                )}
               </div>
             ) : (
               <p>Загрузка...</p>
