@@ -1,4 +1,5 @@
 import React from 'react';
+import { FaMoon, FaSun } from 'react-icons/fa';
 import { useTheme } from '../../hooks/useTheme';
 import styles from './ThemeToggle.module.scss';
 
@@ -12,9 +13,13 @@ export const ThemeToggle: React.FC = () => {
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
     >
       {theme === 'light' ? (
-        <span className={styles.icon}>🌙</span>
+        <span className={styles.icon}>
+          <FaMoon />
+        </span>
       ) : (
-        <span className={styles.icon}>☀️</span>
+        <span className={styles.icon}>
+          <FaSun />
+        </span>
       )}
     </button>
   );

@@ -1,4 +1,14 @@
 import { Link, useLocation } from 'react-router-dom';
+import { 
+  FaChartBar, 
+  FaBox, 
+  FaChartLine, 
+  FaMapMarkedAlt, 
+  FaUsers, 
+  FaFileAlt, 
+  FaCog, 
+  FaLock 
+} from 'react-icons/fa';
 import { useAuthStore } from '../store/auth.store';
 import { ThemeToggle } from './ThemeToggle/ThemeToggle';
 import styles from './Navigation.module.scss';
@@ -8,15 +18,15 @@ export const Navigation = () => {
   const { user, logout } = useAuthStore();
 
   const navItems = [
-    { path: '/dashboard', label: 'Дашборд', icon: '📊' },
-    { path: '/products', label: 'Товары', icon: '📦' },
-    { path: '/analytics', label: 'Аналитика', icon: '📈' },
-    { path: '/geo', label: 'Геоаналитика', icon: '🗺️' },
-    { path: '/competitors', label: 'Конкуренты', icon: '⚔️' },
-    { path: '/reports', label: 'Отчеты', icon: '📄' },
-    { path: '/customers', label: 'Клиенты', icon: '👥' },
-    { path: '/settings', label: 'Настройки', icon: '⚙️' },
-    ...(user?.role === 'admin' ? [{ path: '/admin', label: 'Админка', icon: '🔐' }] : []),
+    { path: '/dashboard', label: 'Дашборд', icon: FaChartBar },
+    { path: '/products', label: 'Товары', icon: FaBox },
+    { path: '/analytics', label: 'Аналитика', icon: FaChartLine },
+    { path: '/geo', label: 'Геоаналитика', icon: FaMapMarkedAlt },
+    { path: '/competitors', label: 'Конкуренты', icon: FaUsers },
+    { path: '/reports', label: 'Отчеты', icon: FaFileAlt },
+    { path: '/customers', label: 'Клиенты', icon: FaUsers },
+    { path: '/settings', label: 'Настройки', icon: FaCog },
+    ...(user?.role === 'admin' ? [{ path: '/admin', label: 'Админка', icon: FaLock }] : []),
   ];
 
   return (
@@ -35,7 +45,9 @@ export const Navigation = () => {
                 location.pathname === item.path ? styles.active : ''
               }`}
             >
-              <span className={styles.icon}>{item.icon}</span>
+              <span className={styles.icon}>
+                <item.icon />
+              </span>
               {item.label}
             </Link>
           </li>

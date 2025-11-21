@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { FaCheckCircle, FaTimesCircle, FaClock } from 'react-icons/fa';
 import { Card } from '../components/Card';
 import { Button } from '../components/Form';
 import { apiClient } from '../services/api.client';
@@ -161,7 +162,10 @@ export const PaymentPage = () => {
             </div>
             {payment.status === 'approved' && (
               <div className={styles.successMessage}>
-                <p>✅ Ваша подписка активирована!</p>
+                <p>
+                  <FaCheckCircle style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                  Ваша подписка активирована!
+                </p>
                 <p>
                   Подписка действует до:{' '}
                   {new Date(payment.subscriptionEndDate).toLocaleDateString('ru-RU')}
@@ -173,7 +177,10 @@ export const PaymentPage = () => {
             )}
             {payment.status === 'rejected' && payment.adminNotes && (
               <div className={styles.rejectionMessage}>
-                <p>❌ Платеж отклонен</p>
+                <p>
+                  <FaTimesCircle style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                  Платеж отклонен
+                </p>
                 <p>Причина: {payment.adminNotes}</p>
                 <Button onClick={() => setPaymentId(null)} variant="primary">
                   Создать новый платеж
@@ -182,7 +189,10 @@ export const PaymentPage = () => {
             )}
             {payment.status === 'expired' && (
               <div className={styles.expiredMessage}>
-                <p>⏰ Срок ожидания оплаты истек</p>
+                <p>
+                  <FaClock style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                  Срок ожидания оплаты истек
+                </p>
                 <Button onClick={() => setPaymentId(null)} variant="primary">
                   Создать новый платеж
                 </Button>
@@ -289,14 +299,16 @@ export const PaymentPage = () => {
               </label>
               {payment.receiptFile && (
                 <p className={styles.uploadedFile}>
-                  ✅ Квитанция загружена: {payment.receiptFileName}
+                  <FaCheckCircle style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                  Квитанция загружена: {payment.receiptFileName}
                 </p>
               )}
             </div>
 
             <div className={styles.expiresInfo}>
               <p>
-                ⏰ Срок ожидания оплаты истекает:{' '}
+                <FaClock style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                Срок ожидания оплаты истекает:{' '}
                 {new Date(payment.expiresAt).toLocaleString('ru-RU')}
               </p>
             </div>
