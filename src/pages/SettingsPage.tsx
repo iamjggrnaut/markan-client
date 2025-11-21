@@ -14,8 +14,16 @@ export const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'notifications' | 'plan' | 'pwa' | 'legal' | 'general'>('profile');
   const [pushEnabled, setPushEnabled] = useState(false);
   const [isAddIntegrationModalOpen, setIsAddIntegrationModalOpen] = useState(false);
+  const [isEditIntegrationModalOpen, setIsEditIntegrationModalOpen] = useState(false);
+  const [editingIntegration, setEditingIntegration] = useState<any>(null);
   const [newIntegration, setNewIntegration] = useState({
     marketplaceType: 'wildberries',
+    accountName: '',
+    apiKey: '',
+    apiSecret: '',
+    token: '',
+  });
+  const [editIntegration, setEditIntegration] = useState({
     accountName: '',
     apiKey: '',
     apiSecret: '',
@@ -169,10 +177,37 @@ export const SettingsPage = () => {
     },
   });
 
-  const handleIntegrationConfigure = () => {
-    // Можно открыть модальное окно или перенаправить на страницу настройки
-    // Пока просто показываем сообщение, что функционал в разработке
-    alert('Функционал настройки интеграции в разработке');
+  const updateIntegrationMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiClient.instance.patch(`/integrations/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
+      setIsEditIntegrationModalOpen(false);
+      setEditingIntegration(null);
+      setEditIntegration({
+        accountName: '',
+        apiKey: '',
+        apiSecret: '',
+        token: '',
+      });
+      alert('Интеграция успешно обновлена!');
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Ошибка при обновлении интеграции');
+    },
+  });
+
+  const handleIntegrationConfigure = (integration: any) => {
+    setEditingIntegration(integration);
+    setEditIntegration({
+      accountName: integration.accountName || '',
+      apiKey: '', // Не показываем существующий ключ из соображений безопасности
+      apiSecret: '',
+      token: '',
+    });
+    setIsEditIntegrationModalOpen(true);
   };
 
   const handleAddIntegration = () => {
@@ -200,6 +235,35 @@ export const SettingsPage = () => {
     }
 
     createIntegrationMutation.mutate(payload);
+  };
+
+  const handleSubmitEditIntegration = () => {
+    if (!editingIntegration) return;
+
+    if (!editIntegration.accountName) {
+      alert('Заполните обязательное поле: название аккаунта');
+      return;
+    }
+
+    // Обновляем только те поля, которые были изменены
+    const payload: any = {
+      accountName: editIntegration.accountName,
+    };
+
+    // Обновляем ключи только если они были введены
+    if (editIntegration.apiKey) {
+      payload.apiKey = editIntegration.apiKey;
+    }
+
+    if (editIntegration.apiSecret) {
+      payload.apiSecret = editIntegration.apiSecret;
+    }
+
+    if (editIntegration.token) {
+      payload.token = editIntegration.token;
+    }
+
+    updateIntegrationMutation.mutate({ id: editingIntegration.id, data: payload });
   };
 
   return (
@@ -349,7 +413,7 @@ export const SettingsPage = () => {
                     <Button 
                       size="sm" 
                       variant="secondary"
-                      onClick={handleIntegrationConfigure}
+                      onClick={() => handleIntegrationConfigure(integration)}
                     >
                       Настроить
                     </Button>
@@ -454,6 +518,120 @@ export const SettingsPage = () => {
               * Обязательные поля
             </p>
           </div>
+        </Modal>
+
+        <Modal
+          isOpen={isEditIntegrationModalOpen}
+          onClose={() => {
+            setIsEditIntegrationModalOpen(false);
+            setEditingIntegration(null);
+            setEditIntegration({
+              accountName: '',
+              apiKey: '',
+              apiSecret: '',
+              token: '',
+            });
+          }}
+          title="Настроить интеграцию"
+          size="md"
+          footer={
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setIsEditIntegrationModalOpen(false);
+                  setEditingIntegration(null);
+                  setEditIntegration({
+                    accountName: '',
+                    apiKey: '',
+                    apiSecret: '',
+                    token: '',
+                  });
+                }}
+              >
+                Отмена
+              </Button>
+              <Button
+                onClick={handleSubmitEditIntegration}
+                disabled={updateIntegrationMutation.isPending}
+              >
+                {updateIntegrationMutation.isPending ? 'Сохранение...' : 'Сохранить'}
+              </Button>
+            </>
+          }
+        >
+          {editingIntegration && (
+            <div className={styles.integrationForm}>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Маркетплейс</label>
+                <Input
+                  type="text"
+                  value={editingIntegration.marketplaceType || editingIntegration.marketplace || ''}
+                  disabled
+                  style={{ width: '100%', opacity: 0.6 }}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Название аккаунта *</label>
+                <Input
+                  type="text"
+                  value={editIntegration.accountName}
+                  onChange={(e) => setEditIntegration({ ...editIntegration, accountName: e.target.value })}
+                  placeholder="Например: Мой аккаунт Wildberries"
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>API ключ</label>
+                <Input
+                  type="password"
+                  value={editIntegration.apiKey}
+                  onChange={(e) => setEditIntegration({ ...editIntegration, apiKey: e.target.value })}
+                  placeholder="Введите новый API ключ (оставьте пустым, чтобы не изменять)"
+                  style={{ width: '100%' }}
+                />
+                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                  Оставьте пустым, если не хотите изменять ключ
+                </p>
+              </div>
+
+              {(editingIntegration.marketplaceType === 'ozon' || editingIntegration.marketplace === 'ozon') && (
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>API Secret</label>
+                  <Input
+                    type="password"
+                    value={editIntegration.apiSecret}
+                    onChange={(e) => setEditIntegration({ ...editIntegration, apiSecret: e.target.value })}
+                    placeholder="Введите новый API Secret (оставьте пустым, чтобы не изменять)"
+                    style={{ width: '100%' }}
+                  />
+                  <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                    Оставьте пустым, если не хотите изменять секрет
+                  </p>
+                </div>
+              )}
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Token (опционально)</label>
+                <Input
+                  type="password"
+                  value={editIntegration.token}
+                  onChange={(e) => setEditIntegration({ ...editIntegration, token: e.target.value })}
+                  placeholder="Введите новый токен (оставьте пустым, чтобы не изменять)"
+                  style={{ width: '100%' }}
+                />
+                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                  Оставьте пустым, если не хотите изменять токен
+                </p>
+              </div>
+
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '1rem' }}>
+                * Обязательные поля. Поля для ключей можно оставить пустыми, если не хотите их изменять.
+              </p>
+            </div>
+          )}
         </Modal>
 
         {activeTab === 'notifications' && (
