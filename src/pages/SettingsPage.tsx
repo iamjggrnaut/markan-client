@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Card } from '../components/Card';
 import { Button } from '../components/Form';
 import { apiClient } from '../services/api.client';
@@ -54,13 +54,6 @@ export const SettingsPage = () => {
   });
 
   const [selectedBillingPeriod, setSelectedBillingPeriod] = useState<string>('annual');
-    mutationFn: async ({ planType, billingPeriod }: { planType: string; billingPeriod: string }) => {
-      return apiClient.instance.post(`/plans/change/${planType}`, { billingPeriod });
-    },
-    onSuccess: () => {
-      window.location.reload();
-    },
-  });
 
   useEffect(() => {
     // Проверяем статус Push подписки
