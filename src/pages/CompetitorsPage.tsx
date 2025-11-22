@@ -94,9 +94,10 @@ export const CompetitorsPage = () => {
 
   return (
     <div className={styles.competitors}>
-      <h1 className={styles.title}>Анализ конкурентов</h1>
+      <div className={styles.content}>
+        <h1 className={styles.title}>Анализ конкурентов</h1>
 
-      <Card title="Список конкурентов">
+        <Card title="Список конкурентов">
         <Table
           columns={columns}
           data={competitors || []}
@@ -140,6 +141,7 @@ export const CompetitorsPage = () => {
           </div>
         )}
       </Modal>
+      </div>
     </div>
   );
 };

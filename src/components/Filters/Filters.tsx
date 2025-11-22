@@ -13,11 +13,15 @@ export interface FiltersProps {
   onPeriodChange?: (value: string) => void;
   onSourceChange?: (value: string) => void;
   onRegionChange?: (value: string) => void;
+  onMarketplaceChange?: (value: string) => void;
   selectedPeriod?: string;
   selectedSource?: string;
   selectedRegion?: string;
+  selectedMarketplace?: string;
   showRegions?: boolean;
+  showMarketplace?: boolean;
   regions?: FilterOption[];
+  marketplaceOptions?: FilterOption[];
 }
 
 export const Filters = ({
@@ -35,16 +39,26 @@ export const Filters = ({
   onPeriodChange,
   onSourceChange,
   onRegionChange,
+  onMarketplaceChange,
   selectedPeriod = 'week',
   selectedSource = 'marketplace',
   selectedRegion,
+  selectedMarketplace,
   showRegions = false,
+  showMarketplace = false,
   regions = [],
+  marketplaceOptions = [
+    { value: '', label: 'Все маркетплейсы' },
+    { value: 'wildberries', label: 'Wildberries' },
+    { value: 'ozon', label: 'Ozon' },
+    { value: 'yandex-market', label: 'Яндекс.Маркет' },
+  ],
 }: FiltersProps) => {
   const [activeFilters, setActiveFilters] = useState({
     period: selectedPeriod,
     source: selectedSource,
     region: selectedRegion || '',
+    marketplace: selectedMarketplace || '',
   });
 
   useEffect(() => {
@@ -52,8 +66,9 @@ export const Filters = ({
       period: selectedPeriod,
       source: selectedSource,
       region: selectedRegion || '',
+      marketplace: selectedMarketplace || '',
     });
-  }, [selectedPeriod, selectedSource, selectedRegion]);
+  }, [selectedPeriod, selectedSource, selectedRegion, selectedMarketplace]);
 
   const handlePeriodChange = (value: string) => {
     setActiveFilters((prev) => ({ ...prev, period: value }));
@@ -73,6 +88,13 @@ export const Filters = ({
     setActiveFilters((prev) => ({ ...prev, region: value }));
     if (onRegionChange) {
       onRegionChange(value);
+    }
+  };
+
+  const handleMarketplaceChange = (value: string) => {
+    setActiveFilters((prev) => ({ ...prev, marketplace: value }));
+    if (onMarketplaceChange) {
+      onMarketplaceChange(value);
     }
   };
 
@@ -107,6 +129,18 @@ export const Filters = ({
             ]}
             value={activeFilters.region}
             onChange={(e) => handleRegionChange(e.target.value)}
+            className={styles.filterSelect}
+            style={{ margin: 0 }}
+          />
+        </div>
+      )}
+
+      {showMarketplace && (
+        <div className={styles.filterGroup}>
+          <Select
+            options={marketplaceOptions}
+            value={activeFilters.marketplace}
+            onChange={(e) => handleMarketplaceChange(e.target.value)}
             className={styles.filterSelect}
             style={{ margin: 0 }}
           />

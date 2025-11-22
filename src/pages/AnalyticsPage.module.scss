@@ -11,16 +11,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
 .title {
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
-  color: var(--color-text);
+  color: var(--color-text-primary);
 }
 
 .controls {
@@ -172,7 +172,7 @@
 }
 
 @media (max-width: 768px) {
-  .analytics {
+  .content {
     padding: 1rem;
   }
 

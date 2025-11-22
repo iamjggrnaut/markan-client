@@ -57,7 +57,8 @@ export const OptimizationPage = () => {
 
   return (
     <div className={styles.optimization}>
-      <div className={styles.header}>
+      <div className={styles.content}>
+        <div className={styles.header}>
         <div className={styles.headerContent}>
           <FaBolt className={styles.headerIcon} />
           <h1 className={styles.title}>Оптимизация</h1>
@@ -160,6 +161,7 @@ export const OptimizationPage = () => {
             <p>Нет доступных рекомендаций по оптимизации</p>
           </Card>
         )}
+      </div>
       </div>
     </div>
   );

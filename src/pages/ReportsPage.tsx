@@ -113,12 +113,13 @@ export const ReportsPage = () => {
 
   return (
     <div className={styles.reports}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Отчеты</h1>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          Создать отчет
-        </Button>
-      </div>
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Отчеты</h1>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            Создать отчет
+          </Button>
+        </div>
 
       <Card title="Список отчетов">
         <Table
@@ -181,6 +182,7 @@ export const ReportsPage = () => {
           )}
         </div>
       </Modal>
+      </div>
     </div>
   );
 };

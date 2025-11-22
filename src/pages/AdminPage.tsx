@@ -127,7 +127,8 @@ export const AdminPage: React.FC = () => {
 
   return (
     <div className={styles.adminPage}>
-      <div className={styles.header}>
+      <div className={styles.content}>
+        <div className={styles.header}>
         <h1>Панель администратора</h1>
         <div className={styles.tabs}>
           <button

@@ -1,6 +1,9 @@
 .settings {
   min-height: 100vh;
   background-color: var(--color-bg-primary);
+}
+
+.content {
   padding: 2rem;
 }
 
@@ -8,7 +11,7 @@
   font-size: 2rem;
   font-weight: 700;
   color: var(--color-text-primary);
-  margin: 0 0 2rem 0;
+  margin: 0 0 1.5rem 0;
 }
 
 .tabs {

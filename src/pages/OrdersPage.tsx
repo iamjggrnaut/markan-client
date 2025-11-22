@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Table } from '../components/Table';
 import { Card } from '../components/Card';
 import { Filters } from '../components/Filters';
-import { Select } from '../components/Form';
 import { apiClient } from '../services/api.client';
 import styles from './OrdersPage.module.scss';
 
@@ -144,37 +143,28 @@ export const OrdersPage = () => {
 
   return (
     <div className={styles.orders}>
-      <h1 className={styles.title}>Лента заказов</h1>
-      
       <Filters
         selectedPeriod={period}
         selectedSource={source}
+        selectedMarketplace={marketplace}
         onPeriodChange={setPeriod}
         onSourceChange={setSource}
+        onMarketplaceChange={setMarketplace}
+        showMarketplace={true}
       />
-      
-      <div className={styles.marketplaceFilter}>
-        <Select
-          options={[
-            { value: '', label: 'Все маркетплейсы' },
-            { value: 'wildberries', label: 'Wildberries' },
-            { value: 'ozon', label: 'Ozon' },
-            { value: 'yandex-market', label: 'Яндекс.Маркет' },
-          ]}
-          value={marketplace}
-          onChange={(e) => setMarketplace(e.target.value)}
-          style={{ width: '200px' }}
-        />
-      </div>
 
-      <Card className={styles.ordersCard}>
+      <div className={styles.content}>
+        <h1 className={styles.title}>Лента заказов</h1>
+
+        <Card className={styles.ordersCard}>
         <Table
           columns={columns}
           data={orders}
           loading={isLoading}
           emptyMessage={integrations?.length === 0 ? "Нет подключенных интеграций" : "Заказы не найдены"}
         />
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };

@@ -268,7 +268,8 @@ export const SettingsPage = () => {
 
   return (
     <div className={styles.settings}>
-      <h1 className={styles.title}>Настройки</h1>
+      <div className={styles.content}>
+        <h1 className={styles.title}>Настройки</h1>
 
       <div className={styles.tabs}>
         {tabs.map((tab) => (
@@ -1005,6 +1006,7 @@ export const SettingsPage = () => {
             </div>
           </Card>
         )}
+      </div>
       </div>
     </div>
   );

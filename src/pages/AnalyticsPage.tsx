@@ -141,9 +141,10 @@ export const AnalyticsPage = () => {
         onSourceChange={setSource}
       />
 
-      {/* KPI метрики */}
-      {kpi && (
-        <div className={styles.kpiGrid}>
+      <div className={styles.content}>
+        {/* KPI метрики */}
+        {kpi && (
+          <div className={styles.kpiGrid}>
           <Card className={styles.kpiCard}>
             <div className={styles.kpiContent}>
               <h3 className={styles.kpiLabel}>Выручка</h3>
@@ -327,6 +328,7 @@ export const AnalyticsPage = () => {
           </Card>
         </div>
       )}
+      </div>
     </div>
   );
 };

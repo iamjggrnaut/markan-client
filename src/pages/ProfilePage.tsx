@@ -98,9 +98,10 @@ export const ProfilePage = () => {
 
   return (
     <div className={styles.profile}>
-      <h1 className={styles.title}>Профиль</h1>
+      <div className={styles.content}>
+        <h1 className={styles.title}>Профиль</h1>
 
-      {success && <div className={styles.success}>{success}</div>}
+        {success && <div className={styles.success}>{success}</div>}
 
       <div className={styles.grid}>
         <Card title="Личная информация">
@@ -202,6 +203,7 @@ export const ProfilePage = () => {
             </Button>
           </form>
         </Card>
+      </div>
       </div>
     </div>
   );
