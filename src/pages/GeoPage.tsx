@@ -67,19 +67,23 @@ export const GeoPage = () => {
   });
 
   // Формируем данные для таблиц из API
-  const ordersData = regionalComparison && Array.isArray(regionalComparison) ? regionalComparison.slice(0, 5).map((item: any) => ({
-    region: item.region || 'Неизвестный регион',
-    quantity: `${item.ordersCount || 0} шт.`,
-    amount: `${(item.totalRevenue || 0).toLocaleString('ru-RU')} ₽`,
-    share: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(0)}%`,
-  })) || [];
+  const ordersData = regionalComparison && Array.isArray(regionalComparison)
+    ? regionalComparison.slice(0, 5).map((item: any) => ({
+        region: item.region || 'Неизвестный регион',
+        quantity: `${item.ordersCount || 0} шт.`,
+        amount: `${(item.totalRevenue || 0).toLocaleString('ru-RU')} ₽`,
+        share: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(0)}%`,
+      }))
+    : [];
 
-  const salesData = regionalComparison && Array.isArray(regionalComparison) ? regionalComparison.slice(0, 5).map((item: any) => ({
-    region: item.region || 'Неизвестный регион',
-    total: `${item.ordersCount || 0} шт. ${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(2)}%`,
-    totalShare: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(0)}%`,
-    byWarehouse: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(0)}%`,
-  })) || [];
+  const salesData = regionalComparison && Array.isArray(regionalComparison)
+    ? regionalComparison.slice(0, 5).map((item: any) => ({
+        region: item.region || 'Неизвестный регион',
+        total: `${item.ordersCount || 0} шт. ${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(2)}%`,
+        totalShare: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(0)}%`,
+        byWarehouse: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(0)}%`,
+      }))
+    : [];
 
   const ordersColumns = [
     { key: 'region', header: 'Регион' },
