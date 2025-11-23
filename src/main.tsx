@@ -15,23 +15,27 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
-      onError: (error: any) => {
-        // Преобразуем объект ошибки в строку для предотвращения React Error #31
-        const errorMessage = error?.response?.data?.message 
-          || error?.message 
-          || 'Произошла ошибка при загрузке данных';
-        toast.error(errorMessage);
-      },
     },
     mutations: {
       retry: 1,
-      onError: (error: any) => {
-        // Преобразуем объект ошибки в строку для предотвращения React Error #31
-        const errorMessage = error?.response?.data?.message 
-          || error?.message 
-          || 'Произошла ошибка при выполнении операции';
-        toast.error(errorMessage);
-      },
+    },
+  },
+  mutationCache: {
+    onError: (error: any) => {
+      // Преобразуем объект ошибки в строку для предотвращения React Error #31
+      const errorMessage = error?.response?.data?.message 
+        || error?.message 
+        || 'Произошла ошибка при выполнении операции';
+      toast.error(errorMessage);
+    },
+  },
+  queryCache: {
+    onError: (error: any) => {
+      // Преобразуем объект ошибки в строку для предотвращения React Error #31
+      const errorMessage = error?.response?.data?.message 
+        || error?.message 
+        || 'Произошла ошибка при загрузке данных';
+      toast.error(errorMessage);
     },
   },
 });

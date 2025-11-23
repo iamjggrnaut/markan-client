@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../../store/auth.store';
 import { apiClient } from '../../services/api.client';
 import { RegionalStats } from './GeoMap';
 import styles from './RegionModal.module.scss';
