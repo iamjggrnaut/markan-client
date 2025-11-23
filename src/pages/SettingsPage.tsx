@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from '../components/Card';
 import { Button, Select, Input } from '../components/Form';
 import { Modal } from '../components/Modal';
 import { apiClient } from '../services/api.client';
 import { pushNotificationService } from '../utils/push-notifications';
+import { toast } from '../utils/toast';
 import { usePWA } from '../hooks/usePWA';
 import styles from './SettingsPage.module.scss';
 
 export const SettingsPage = () => {
+  const location = useLocation();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'profile' | 'integrations' | 'notifications' | 'plan' | 'pwa' | 'legal' | 'general'>('profile');
   const [pushEnabled, setPushEnabled] = useState(false);
@@ -39,6 +41,30 @@ export const SettingsPage = () => {
     },
   });
 
+  // Получаем задачи синхронизации для всех интеграций
+  const [syncStatuses, setSyncStatuses] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    if (!integrations || integrations.length === 0) return;
+
+    const fetchSyncStatuses = async () => {
+      const statuses: Record<string, any> = {};
+      for (const integration of integrations) {
+        try {
+          const response = await apiClient.instance.get(`/sync/accounts/${integration.id}/statistics`);
+          statuses[integration.id] = response.data;
+        } catch (error) {
+          // Игнорируем ошибки для интеграций без статуса синхронизации
+        }
+      }
+      setSyncStatuses(statuses);
+    };
+
+    fetchSyncStatuses();
+    const interval = setInterval(fetchSyncStatuses, 10000); // Обновляем каждые 10 секунд
+    return () => clearInterval(interval);
+  }, [integrations]);
+
   const { data: notificationsData } = useQuery({
     queryKey: ['notification-preferences'],
     queryFn: async () => {
@@ -56,11 +82,14 @@ export const SettingsPage = () => {
     },
   });
 
-  const { data: userSettings } = useQuery({
+  const { data: userSettings, isError: userSettingsError } = useQuery({
     queryKey: ['user-settings'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/users/me/settings');
       return response.data;
+    },
+    onError: (error: any) => {
+      console.error('Ошибка загрузки настроек пользователя:', error);
     },
   });
 
@@ -88,27 +117,36 @@ export const SettingsPage = () => {
     },
   });
 
-  const { data: userPlan } = useQuery({
+  const { data: userPlan, isError: userPlanError } = useQuery({
     queryKey: ['user-plan'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/users/me');
       return response.data.plan;
     },
+    onError: (error: any) => {
+      console.error('Ошибка загрузки тарифного плана:', error);
+    },
   });
 
-  const { data: trialInfo } = useQuery({
+  const { data: trialInfo, isError: trialInfoError } = useQuery({
     queryKey: ['trial-info'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/plans/my/trial');
       return response.data;
     },
+    onError: (error: any) => {
+      console.error('Ошибка загрузки информации о триале:', error);
+    },
   });
 
-  const { data: plans } = useQuery({
+  const { data: plans, isError: plansError } = useQuery({
     queryKey: ['plans'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/plans');
       return response.data;
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки тарифных планов');
     },
   });
 
@@ -137,8 +175,12 @@ export const SettingsPage = () => {
           try {
             await apiClient.instance.post('/notifications/push/subscribe', subData);
             setPushEnabled(true);
-          } catch (error) {
+          } catch (error: any) {
             console.error('Failed to register push subscription:', error);
+            // Не блокируем пользователя, если push не работает
+            if (error.response?.status !== 404) {
+              toast.warning('Не удалось зарегистрировать push-уведомления. Они могут быть недоступны.');
+            }
           }
         }
       }
@@ -153,6 +195,8 @@ export const SettingsPage = () => {
     { id: 'plan', label: 'Тариф' },
     { id: 'pwa', label: 'PWA' },
     { id: 'legal', label: 'Юридические документы' },
+    { id: 'organizations', label: 'Организации', link: '/organizations' },
+    { id: 'api-keys', label: 'API Ключи', link: '/api-keys' },
   ];
 
   const createIntegrationMutation = useMutation({
@@ -170,10 +214,10 @@ export const SettingsPage = () => {
         apiSecret: '',
         token: '',
       });
-      alert('Интеграция успешно добавлена!');
+      toast.success('Интеграция успешно добавлена!');
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Ошибка при добавлении интеграции');
+      toast.error(error.response?.data?.message || 'Ошибка при добавлении интеграции');
     },
   });
 
@@ -192,12 +236,35 @@ export const SettingsPage = () => {
         apiSecret: '',
         token: '',
       });
-      alert('Интеграция успешно обновлена!');
+      toast.success('Интеграция успешно обновлена!');
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Ошибка при обновлении интеграции');
+      toast.error(error.response?.data?.message || 'Ошибка при обновлении интеграции');
     },
   });
+
+  // Мутация для запуска синхронизации
+  const syncIntegrationMutation = useMutation({
+    mutationFn: async (accountId: string) => {
+      const response = await apiClient.instance.post(`/sync/accounts/${accountId}`, {
+        type: 'FULL',
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sync-status'] });
+      toast.success('Синхронизация запущена!');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка при запуске синхронизации');
+    },
+  });
+
+  const handleSyncIntegration = (integrationId: string) => {
+    if (confirm('Запустить синхронизацию данных для этой интеграции?')) {
+      syncIntegrationMutation.mutate(integrationId);
+    }
+  };
 
   const handleIntegrationConfigure = (integration: any) => {
     setEditingIntegration(integration);
@@ -216,7 +283,7 @@ export const SettingsPage = () => {
 
   const handleSubmitIntegration = () => {
     if (!newIntegration.accountName || !newIntegration.apiKey) {
-      alert('Заполните обязательные поля: название аккаунта и API ключ');
+      toast.warning('Заполните обязательные поля: название аккаунта и API ключ');
       return;
     }
 
@@ -241,7 +308,7 @@ export const SettingsPage = () => {
     if (!editingIntegration) return;
 
     if (!editIntegration.accountName) {
-      alert('Заполните обязательное поле: название аккаунта');
+      toast.warning('Заполните обязательное поле: название аккаунта');
       return;
     }
 
@@ -272,15 +339,28 @@ export const SettingsPage = () => {
         <h1 className={styles.title}>Настройки</h1>
 
       <div className={styles.tabs}>
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
-            onClick={() => setActiveTab(tab.id as any)}
-          >
-            {tab.label}
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          if (tab.link) {
+            return (
+              <Link
+                key={tab.id}
+                to={tab.link}
+                className={`${styles.tab} ${location.pathname === tab.link ? styles.active : ''}`}
+              >
+                {tab.label}
+              </Link>
+            );
+          }
+          return (
+            <button
+              key={tab.id}
+              className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
+              onClick={() => setActiveTab(tab.id as any)}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       <div className={styles.content}>
@@ -403,23 +483,50 @@ export const SettingsPage = () => {
           <Card title="Интеграции с маркетплейсами">
             {integrations && integrations.length > 0 ? (
               <div className={styles.integrationsList}>
-                {integrations.map((integration: any) => (
-                  <div key={integration.id} className={styles.integrationItem}>
-                    <div>
-                      <h3>{integration.marketplaceType || integration.marketplace}</h3>
-                      <p className={styles.integrationStatus}>
-                        {integration.isActive ? 'Активна' : 'Неактивна'}
-                      </p>
+                {integrations.map((integration: any) => {
+                  const syncStatus = syncStatuses[integration.id];
+                  const lastSync = syncStatus?.lastSyncAt 
+                    ? new Date(syncStatus.lastSyncAt).toLocaleString('ru-RU')
+                    : integration.lastSyncAt
+                    ? new Date(integration.lastSyncAt).toLocaleString('ru-RU')
+                    : 'Никогда';
+                  
+                  return (
+                    <div key={integration.id} className={styles.integrationItem}>
+                      <div>
+                        <h3>{integration.accountName || integration.marketplaceType || integration.marketplace}</h3>
+                        <p className={styles.integrationStatus}>
+                          Статус: {integration.status === 'ACTIVE' ? 'Активна' : integration.status === 'INACTIVE' ? 'Неактивна' : integration.status || 'Неизвестно'}
+                        </p>
+                        <p className={styles.integrationSyncStatus}>
+                          Последняя синхронизация: {lastSync}
+                        </p>
+                        {syncStatus?.lastSyncStatus && (
+                          <p className={styles.integrationSyncStatus}>
+                            Статус: {syncStatus.lastSyncStatus}
+                          </p>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <Button 
+                          size="sm" 
+                          variant="secondary"
+                          onClick={() => handleSyncIntegration(integration.id)}
+                          disabled={syncIntegrationMutation.isPending}
+                        >
+                          {syncIntegrationMutation.isPending ? 'Синхронизация...' : 'Синхронизировать'}
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="secondary"
+                          onClick={() => handleIntegrationConfigure(integration)}
+                        >
+                          Настроить
+                        </Button>
+                      </div>
                     </div>
-                    <Button 
-                      size="sm" 
-                      variant="secondary"
-                      onClick={() => handleIntegrationConfigure(integration)}
-                    >
-                      Настроить
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <p>Интеграции не настроены</p>

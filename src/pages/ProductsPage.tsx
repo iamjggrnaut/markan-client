@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Table } from '../components/Table';
 import { Card } from '../components/Card';
@@ -9,19 +10,23 @@ import { apiClient } from '../services/api.client';
 import styles from './ProductsPage.module.scss';
 
 export const ProductsPage = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [period, setPeriod] = useState('month');
   const [source, setSource] = useState('marketplace');
 
-  const { data: productsData, isLoading } = useQuery({
+  const { data: productsData, isLoading, isError: productsError } = useQuery({
     queryKey: ['products', search],
     queryFn: async () => {
       const response = await apiClient.instance.get('/products', {
         params: { search },
       });
       return response.data;
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки товаров');
     },
   });
 
@@ -30,21 +35,28 @@ export const ProductsPage = () => {
     ? productsData 
     : (productsData?.products || []);
 
-  const { data: abcAnalysis } = useQuery({
+  const { data: abcAnalysis, isError: abcError } = useQuery({
     queryKey: ['abc-analysis'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/products/abc-analysis');
       return response.data;
     },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки ABC-анализа');
+    },
   });
 
-  const { data: stockForecast, error: stockForecastError } = useQuery({
+  const { data: stockForecast, error: stockForecastError, isError: stockForecastIsError } = useQuery({
     queryKey: ['reorder-recommendations'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/products/reorder-recommendations');
       return response.data;
     },
     retry: false, // Не повторять запрос при ошибке
+    onError: (error: any) => {
+      // Не показываем toast для этого запроса, так как он не критичен
+      console.error('Ошибка загрузки рекомендаций по остаткам:', error);
+    },
   });
 
   const columns = [
@@ -85,8 +97,7 @@ export const ProductsPage = () => {
           size="sm"
           variant="secondary"
           onClick={() => {
-            setSelectedProduct(item);
-            setIsModalOpen(true);
+            navigate(`/products/${item.id}`);
           }}
         >
           Детали

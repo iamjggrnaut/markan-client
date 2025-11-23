@@ -7,6 +7,43 @@
   padding: 2rem;
 }
 
+.widgetsGrid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.widgetContainer {
+  min-height: 150px;
+}
+
+.widgetCard {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin: 0 0 1rem 0;
+  }
+}
+
+.widgetValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.widgetChange {
+  font-size: 0.875rem;
+  color: var(--color-success);
+  font-weight: 500;
+}
+
 .kpiGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -390,6 +427,24 @@
   .regionalTablesGrid {
     grid-template-columns: 1fr;
   }
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-text-secondary);
+}
+
+.error {
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-error);
+}
+
+.errorMessage {
+  margin: 1rem 0;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
 }
 
 @media (max-width: 768px) {

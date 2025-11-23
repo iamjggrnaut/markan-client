@@ -8,7 +8,7 @@ class ApiClient {
 
   constructor() {
     this.client = axios.create({
-      baseURL: API_URL,
+      baseURL: `${API_URL}/api/v1`,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -44,7 +44,7 @@ class ApiClient {
           try {
             originalRequest._retry = true;
             // Создаем отдельный экземпляр axios для refresh, чтобы избежать циклической зависимости
-            const refreshClient = axios.create({ baseURL: API_URL });
+            const refreshClient = axios.create({ baseURL: `${API_URL}/api/v1` });
             const response = await refreshClient.post('/auth/refresh', {
               refresh_token: refreshToken,
             });

@@ -1,23 +1,28 @@
 import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Table } from '../components/Table';
 import { Card } from '../components/Card';
 import { Button, Select, Input } from '../components/Form';
 import { Modal } from '../components/Modal';
 import { apiClient } from '../services/api.client';
+import { toast } from '../utils/toast';
 import styles from './ReportsPage.module.scss';
 
 export const ReportsPage = () => {
+  const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [reportType, setReportType] = useState('daily');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const { data: reports, isLoading } = useQuery({
+  const { data: reports, isLoading, isError: reportsError } = useQuery({
     queryKey: ['reports'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/reports');
       return response.data;
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки отчетов');
     },
   });
 
@@ -28,7 +33,11 @@ export const ReportsPage = () => {
     },
     onSuccess: () => {
       setIsCreateModalOpen(false);
-      // Invalidate queries to refresh list
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      toast.success('Отчет успешно создан!');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка при создании отчета');
     },
   });
 

@@ -14,6 +14,10 @@ export const Navigation = () => {
     { path: '/analytics', label: 'Товарная аналитика' },
     { path: '/orders', label: 'Лента заказов' },
     { path: '/reports', label: 'Еженедельные отчеты' },
+    { path: '/competitors', label: 'Конкуренты' },
+    { path: '/customers', label: 'Клиенты' },
+    { path: '/ai', label: 'AI Рекомендации' },
+    { path: '/sync', label: 'Синхронизация' },
   ];
 
   const getActivePath = () => {
@@ -24,6 +28,10 @@ export const Navigation = () => {
     if (path.startsWith('/products')) return '/products';
     if (path.startsWith('/orders')) return '/orders';
     if (path.startsWith('/reports')) return '/reports';
+    if (path.startsWith('/competitors')) return '/competitors';
+    if (path.startsWith('/customers')) return '/customers';
+    if (path.startsWith('/ai')) return '/ai';
+    if (path.startsWith('/sync')) return '/sync';
     return path;
   };
 

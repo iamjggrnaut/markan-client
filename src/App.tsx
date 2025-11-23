@@ -27,6 +27,12 @@ const ApiPolicyPage = lazy(() => import('./pages/ApiPolicyPage').then(m => ({ de
 const PaymentPage = lazy(() => import('./pages/PaymentPage').then(m => ({ default: m.PaymentPage })));
 const OrdersPage = lazy(() => import('./pages/OrdersPage').then(m => ({ default: m.OrdersPage })));
 const OptimizationPage = lazy(() => import('./pages/OptimizationPage').then(m => ({ default: m.OptimizationPage })));
+const SyncPage = lazy(() => import('./pages/SyncPage').then(m => ({ default: m.SyncPage })));
+const AIPage = lazy(() => import('./pages/AIPage').then(m => ({ default: m.AIPage })));
+const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage').then(m => ({ default: m.ProductDetailPage })));
+const CustomersPage = lazy(() => import('./pages/CustomersPage').then(m => ({ default: m.CustomersPage })));
+const OrganizationsPage = lazy(() => import('./pages/OrganizationsPage').then(m => ({ default: m.OrganizationsPage })));
+const ApiKeysPage = lazy(() => import('./pages/ApiKeysPage').then(m => ({ default: m.ApiKeysPage })));
 
 function App() {
   const restoreSession = useAuthStore((state) => state.restoreSession);
@@ -80,12 +86,18 @@ function App() {
                     <Route path="/analytics" element={<AnalyticsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/products" element={<ProductsPage />} />
+                    <Route path="/products/:id" element={<ProductDetailPage />} />
                     <Route path="/orders" element={<OrdersPage />} />
                     <Route path="/geo" element={<GeoPage />} />
                     <Route path="/optimization" element={<OptimizationPage />} />
                     <Route path="/competitors" element={<CompetitorsPage />} />
                     <Route path="/reports" element={<ReportsPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/sync" element={<SyncPage />} />
+                    <Route path="/ai" element={<AIPage />} />
+                    <Route path="/customers" element={<CustomersPage />} />
+                    <Route path="/organizations" element={<OrganizationsPage />} />
+                    <Route path="/api-keys" element={<ApiKeysPage />} />
                     <Route path="/terms" element={<TermsPage />} />
                     <Route path="/privacy" element={<PrivacyPage />} />
                     <Route path="/refund" element={<RefundPage />} />

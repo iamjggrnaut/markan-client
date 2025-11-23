@@ -5,6 +5,7 @@ import { Input, Button } from '../components/Form';
 import { Card } from '../components/Card';
 import { apiClient } from '../services/api.client';
 import { useAuthStore } from '../store/auth.store';
+import { toast } from '../utils/toast';
 import styles from './ProfilePage.module.scss';
 
 export const ProfilePage = () => {
@@ -12,11 +13,14 @@ export const ProfilePage = () => {
   const { user, login } = useAuthStore();
   const [success, setSuccess] = useState('');
 
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading, isError: profileError } = useQuery({
     queryKey: ['user-profile'],
     queryFn: async () => {
-      const response = await apiClient.instance.get('/users/profile');
+      const response = await apiClient.instance.get('/users/me');
       return response.data;
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки профиля');
     },
   });
 
@@ -46,7 +50,7 @@ export const ProfilePage = () => {
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiClient.instance.patch('/users/profile', data);
+      const response = await apiClient.instance.put('/users/me', data);
       return response.data;
     },
     onSuccess: (data) => {
@@ -60,7 +64,12 @@ export const ProfilePage = () => {
         );
       }
       setSuccess('Профиль успешно обновлен');
+      toast.success('Профиль успешно обновлен');
       setTimeout(() => setSuccess(''), 3000);
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || 'Ошибка при обновлении профиля';
+      toast.error(errorMessage);
     },
   });
 
@@ -71,7 +80,12 @@ export const ProfilePage = () => {
     },
     onSuccess: () => {
       setSuccess('Пароль успешно изменен');
+      toast.success('Пароль успешно изменен');
       setTimeout(() => setSuccess(''), 3000);
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || 'Ошибка при изменении пароля';
+      toast.error(errorMessage);
     },
   });
 

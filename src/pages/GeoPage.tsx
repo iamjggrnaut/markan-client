@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { GeoMap } from '../components/GeoMap';
 import { Card } from '../components/Card';
 import { Filters } from '../components/Filters';
 import { Table } from '../components/Table';
+import { apiClient } from '../services/api.client';
+import { toast } from '../utils/toast';
 import styles from './GeoPage.module.scss';
 
 export const GeoPage = () => {
@@ -10,22 +13,79 @@ export const GeoPage = () => {
   const [source, setSource] = useState('marketplace');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
 
-  // Пример данных для таблиц (в реальности будут из API)
-  const ordersData = [
-    { region: 'Название Региона', quantity: '259 шт.', amount: '259 000 Р.', share: '25%' },
-    { region: 'Название Региона', quantity: '259 шт.', amount: '259 000 Р.', share: '25%' },
-    { region: 'Название Региона', quantity: '259 шт.', amount: '259 000 Р.', share: '25%' },
-    { region: 'Название Региона', quantity: '259 шт.', amount: '259 000 Р.', share: '25%' },
-    { region: 'Название Региона', quantity: '259 шт.', amount: '259 000 Р.', share: '25%' },
-  ];
+  // Маппинг периодов для вычисления дат
+  const periodDaysMap: Record<string, number> = {
+    week: 7,
+    month: 30,
+    quarter: 90,
+    year: 365,
+  };
 
-  const salesData = [
-    { region: 'Название Региона', total: '259 шт. 0.45%', totalShare: '25%', byWarehouse: '25%' },
-    { region: 'Название Региона', total: '259 шт. 0.45%', totalShare: '25%', byWarehouse: '25%' },
-    { region: 'Название Региона', total: '259 шт. 0.45%', totalShare: '25%', byWarehouse: '25%' },
-    { region: 'Название Региона', total: '259 шт. 0.45%', totalShare: '25%', byWarehouse: '25%' },
-    { region: 'Название Региона', total: '259 шт. 0.45%', totalShare: '25%', byWarehouse: '25%' },
-  ];
+  // Вычисляем даты на основе периода
+  const getDateRange = () => {
+    const end = new Date();
+    let start = new Date();
+
+    const days = periodDaysMap[period] || 30;
+    start.setDate(end.getDate() - days);
+
+    return {
+      startDate: start.toISOString().split('T')[0],
+      endDate: end.toISOString().split('T')[0],
+    };
+  };
+
+  const dateRange = getDateRange();
+
+  // Получаем региональную статистику
+  const { data: regionalStats, isLoading: statsLoading, isError: statsError } = useQuery({
+    queryKey: ['geo-regions', period, dateRange.startDate, dateRange.endDate],
+    queryFn: async () => {
+      const response = await apiClient.instance.get('/geo/regions', {
+        params: {
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+        },
+      });
+      return response.data;
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки региональной статистики');
+    },
+  });
+
+  // Получаем сравнение регионов (для таблиц)
+  const { data: regionalComparison, isLoading: comparisonLoading, isError: comparisonError } = useQuery({
+    queryKey: ['geo-regions-comparison', period, dateRange.startDate, dateRange.endDate],
+    queryFn: async () => {
+      const response = await apiClient.instance.get('/geo/regions/comparison', {
+        params: {
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+          sortBy: 'revenue',
+        },
+      });
+      return response.data;
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки сравнения регионов');
+    },
+  });
+
+  // Формируем данные для таблиц из API
+  const ordersData = regionalComparison?.slice(0, 5).map((item: any) => ({
+    region: item.region || 'Неизвестный регион',
+    quantity: `${item.ordersCount || 0} шт.`,
+    amount: `${(item.totalRevenue || 0).toLocaleString('ru-RU')} ₽`,
+    share: `${((item.totalRevenue || 0) / (regionalStats?.totalRevenue || 1) * 100).toFixed(0)}%`,
+  })) || [];
+
+  const salesData = regionalComparison?.slice(0, 5).map((item: any) => ({
+    region: item.region || 'Неизвестный регион',
+    total: `${item.ordersCount || 0} шт. ${((item.totalRevenue || 0) / (regionalStats?.totalRevenue || 1) * 100).toFixed(2)}%`,
+    totalShare: `${((item.totalRevenue || 0) / (regionalStats?.totalRevenue || 1) * 100).toFixed(0)}%`,
+    byWarehouse: `${((item.totalRevenue || 0) / (regionalStats?.totalRevenue || 1) * 100).toFixed(0)}%`,
+  })) || [];
 
   const ordersColumns = [
     { key: 'region', header: 'Регион' },
@@ -80,7 +140,12 @@ export const GeoPage = () => {
                 </button>
               </div>
             </div>
-            <Table data={ordersData} columns={ordersColumns} />
+            <Table 
+              data={ordersData} 
+              columns={ordersColumns} 
+              loading={statsLoading || comparisonLoading}
+              emptyMessage="Нет данных"
+            />
           </Card>
 
           <Card className={styles.tableCard}>
@@ -98,7 +163,12 @@ export const GeoPage = () => {
                 </button>
               </div>
             </div>
-            <Table data={salesData} columns={salesColumns} />
+            <Table 
+              data={salesData} 
+              columns={salesColumns} 
+              loading={statsLoading || comparisonLoading}
+              emptyMessage="Нет данных"
+            />
           </Card>
         </div>
       </div>

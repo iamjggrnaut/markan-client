@@ -4,6 +4,7 @@ import { apiClient } from '../services/api.client';
 import { Card } from '../components/Card';
 import { LineChart, BarChart } from '../components/Chart';
 import { Filters } from '../components/Filters';
+import { toast } from '../utils/toast';
 import styles from './AnalyticsPage.module.scss';
 
 export const AnalyticsPage = () => {
@@ -34,7 +35,7 @@ export const AnalyticsPage = () => {
 
   const dateRange = getDateRange();
 
-  const { data: dashboardStats, isLoading: statsLoading } = useQuery({
+  const { data: dashboardStats, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ['analytics-dashboard', period, dateRange.startDate, dateRange.endDate],
     queryFn: async () => {
       const response = await apiClient.instance.get('/analytics/dashboard', {
@@ -45,19 +46,33 @@ export const AnalyticsPage = () => {
       });
       return response.data;
     },
-  });
-
-  const { data: kpi, isLoading: kpiLoading } = useQuery({
-    queryKey: ['analytics-kpi', period],
-    queryFn: async () => {
-      const response = await apiClient.instance.get('/analytics/kpi', {
-        params: { period: period === '7d' ? 'week' : period === '30d' ? 'month' : 'month' },
-      });
-      return response.data;
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки статистики аналитики');
     },
   });
 
-  const { data: adAnalytics, isLoading: adLoading } = useQuery({
+  // Маппинг периодов для KPI API (ожидает 'day' | 'week' | 'month')
+  const kpiPeriodMap: Record<string, 'day' | 'week' | 'month'> = {
+    week: 'week',
+    month: 'month',
+    quarter: 'month', // Для квартала используем месяц
+    year: 'month', // Для года используем месяц
+  };
+
+  const { data: kpi, isLoading: kpiLoading, isError: kpiError } = useQuery({
+    queryKey: ['analytics-kpi', period],
+    queryFn: async () => {
+      const response = await apiClient.instance.get('/analytics/kpi', {
+        params: { period: kpiPeriodMap[period] || 'month' },
+      });
+      return response.data;
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки KPI метрик');
+    },
+  });
+
+  const { data: adAnalytics, isLoading: adLoading, isError: adError } = useQuery({
     queryKey: ['analytics-ads', period, dateRange.startDate, dateRange.endDate],
     queryFn: async () => {
       const response = await apiClient.instance.get('/analytics/ads', {
@@ -67,6 +82,9 @@ export const AnalyticsPage = () => {
         },
       });
       return response.data;
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки аналитики рекламы');
     },
   });
 

@@ -37,7 +37,7 @@ export const OrdersPage = () => {
   const dateRange = getDateRange();
 
   // Получаем заказы из всех активных интеграций
-  const { data: ordersData, isLoading } = useQuery({
+  const { data: ordersData, isLoading, isError: ordersError } = useQuery({
     queryKey: ['orders', dateRange.startDate, dateRange.endDate, marketplace],
     queryFn: async () => {
       if (!integrations || integrations.length === 0) {
@@ -66,8 +66,9 @@ export const OrdersPage = () => {
           if (Array.isArray(response.data)) {
             allOrders.push(...response.data);
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Ошибка загрузки заказов для ${integration.name}:`, error);
+          toast.error(`Не удалось загрузить заказы из ${integration.name}: ${error.response?.data?.message || 'Неизвестная ошибка'}`);
         }
       }
 

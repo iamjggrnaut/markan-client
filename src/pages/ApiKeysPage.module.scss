@@ -1,0 +1,134 @@
+.apiKeys {
+  min-height: 100vh;
+  background-color: var(--color-bg-primary);
+}
+
+.content {
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.headerIcon {
+  font-size: 2.5rem;
+  color: var(--color-accent);
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.keysCard {
+  margin-bottom: 0;
+}
+
+.keyCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.maskedKey {
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.keyForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formLabel {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.warning {
+  font-size: 0.875rem;
+  color: var(--color-warning);
+  margin: 0;
+  padding: 0.75rem;
+  background-color: rgba(251, 191, 36, 0.1);
+  border-radius: var(--radius-md);
+}
+
+.createdKey {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.createdKeyTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-success);
+  margin: 0;
+}
+
+.keyDisplay {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.keyValue {
+  flex: 1;
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  word-break: break-all;
+  padding: 0.5rem;
+  background-color: var(--color-bg-primary);
+  border-radius: var(--radius-sm);
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .keyDisplay {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+

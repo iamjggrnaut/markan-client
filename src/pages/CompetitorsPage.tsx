@@ -12,24 +12,47 @@ export const CompetitorsPage = () => {
   const [selectedCompetitor, setSelectedCompetitor] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: competitors, isLoading } = useQuery({
+  const { data: competitors, isLoading, isError: competitorsError } = useQuery({
     queryKey: ['competitors'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/competitors');
       return response.data;
     },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки списка конкурентов');
+    },
   });
 
-  const { data: priceComparison } = useQuery({
-    queryKey: ['price-comparison', selectedCompetitor?.id],
+  // Получаем аналитику по конкурентам вместо сравнения цен (которое требует productId)
+  const { data: competitorAnalytics, isError: analyticsError } = useQuery({
+    queryKey: ['competitor-analytics', selectedCompetitor?.id],
+    queryFn: async () => {
+      if (!selectedCompetitor) return null;
+      const response = await apiClient.instance.get('/competitors/analytics', {
+        params: { competitorId: selectedCompetitor.id },
+      });
+      return response.data;
+    },
+    enabled: !!selectedCompetitor,
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки аналитики конкурента');
+    },
+  });
+
+  // Получаем отслеживаемые товары конкурента
+  const { data: competitorProducts, isError: productsError } = useQuery({
+    queryKey: ['competitor-products', selectedCompetitor?.id],
     queryFn: async () => {
       if (!selectedCompetitor) return null;
       const response = await apiClient.instance.get(
-        `/competitors/${selectedCompetitor.id}/price-comparison`,
+        `/competitors/${selectedCompetitor.id}/products`,
       );
       return response.data;
     },
     enabled: !!selectedCompetitor,
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки товаров конкурента');
+    },
   });
 
   const columns = [
@@ -69,24 +92,17 @@ export const CompetitorsPage = () => {
     },
   ];
 
-  const priceChartData = priceComparison
+  // Формируем данные для графика на основе аналитики
+  const priceChartData = competitorAnalytics?.priceTrend
     ? {
-        labels: priceComparison.comparison?.map((c: any) => c.productName) || [],
+        labels: competitorAnalytics.priceTrend.map((item: any) => item.date) || [],
         datasets: [
           {
-            label: 'Ваша цена',
-            data:
-              priceComparison.comparison?.map((c: any) => c.yourPrice) || [],
-            borderColor: 'var(--color-accent)',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          },
-          {
-            label: 'Цена конкурента',
-            data:
-              priceComparison.comparison?.map((c: any) => c.competitorPrice) ||
-              [],
+            label: 'Средняя цена конкурента',
+            data: competitorAnalytics.priceTrend.map((item: any) => item.avgPrice) || [],
             borderColor: 'var(--color-error)',
             backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            fill: true,
           },
         ],
       }
@@ -132,10 +148,45 @@ export const CompetitorsPage = () => {
               </div>
             </div>
 
+            {competitorProducts && competitorProducts.length > 0 && (
+              <div className={styles.products}>
+                <h3>Отслеживаемые товары ({competitorProducts.length})</h3>
+                <Table
+                  columns={[
+                    { key: 'name', header: 'Название' },
+                    { key: 'price', header: 'Цена', render: (item: any) => `${(item.price || 0).toLocaleString('ru-RU')} ₽` },
+                    { key: 'rating', header: 'Рейтинг', render: (item: any) => item.rating?.toFixed(2) || '-' },
+                  ]}
+                  data={competitorProducts.slice(0, 10)}
+                  emptyMessage="Товары не найдены"
+                />
+              </div>
+            )}
+
             {priceChartData && (
               <div className={styles.chart}>
-                <h3>Сравнение цен</h3>
+                <h3>Динамика цен</h3>
                 <LineChart data={priceChartData} height={300} />
+              </div>
+            )}
+
+            {competitorAnalytics && (
+              <div className={styles.analytics}>
+                <h3>Аналитика</h3>
+                <div className={styles.analyticsGrid}>
+                  <div className={styles.analyticsItem}>
+                    <span className={styles.analyticsLabel}>Средняя цена:</span>
+                    <span className={styles.analyticsValue}>
+                      {competitorAnalytics.avgPrice?.toLocaleString('ru-RU') || '-'} ₽
+                    </span>
+                  </div>
+                  <div className={styles.analyticsItem}>
+                    <span className={styles.analyticsLabel}>Товаров отслеживается:</span>
+                    <span className={styles.analyticsValue}>
+                      {competitorAnalytics.productsCount || 0}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
           </div>

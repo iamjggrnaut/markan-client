@@ -1,54 +1,93 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../services/api.client';
 import { Card } from '../components/Card';
 import { LineChart } from '../components/Chart';
 import { Filters } from '../components/Filters';
 import { Table } from '../components/Table';
-import { FaArrowUp } from 'react-icons/fa';
+import { Button } from '../components/Form';
+import { FaArrowUp, FaCog, FaPlus } from 'react-icons/fa';
 import styles from './DashboardPage.module.scss';
 
 export const DashboardPage = () => {
+  const queryClient = useQueryClient();
   const [period, setPeriod] = useState('week');
   const [source, setSource] = useState('marketplace');
+  const [showWidgetSettings, setShowWidgetSettings] = useState(false);
 
-  // Маппинг периодов
-  const periodMap: Record<string, string> = {
-    week: '7d',
-    month: '30d',
-    quarter: '90d',
-    year: '365d',
+  // Маппинг периодов для вычисления дат
+  const periodDaysMap: Record<string, number> = {
+    week: 7,
+    month: 30,
+    quarter: 90,
+    year: 365,
   };
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['dashboard-stats', period],
+  // Маппинг периодов для KPI API (ожидает 'day' | 'week' | 'month')
+  const kpiPeriodMap: Record<string, 'day' | 'week' | 'month'> = {
+    week: 'week',
+    month: 'month',
+    quarter: 'month', // Для квартала используем месяц
+    year: 'month', // Для года используем месяц
+  };
+
+  // Вычисляем даты на основе периода
+  const getDateRange = () => {
+    const end = new Date();
+    let start = new Date();
+
+    const days = periodDaysMap[period] || 30;
+    start.setDate(end.getDate() - days);
+
+    return {
+      startDate: start.toISOString().split('T')[0],
+      endDate: end.toISOString().split('T')[0],
+    };
+  };
+
+  const dateRange = getDateRange();
+
+  const { data: stats, isLoading: statsLoading, isError: statsError, error: statsErrorData } = useQuery({
+    queryKey: ['dashboard-stats', period, dateRange.startDate, dateRange.endDate],
     queryFn: async () => {
       const response = await apiClient.instance.get('/analytics/dashboard', {
-        params: { period: periodMap[period] || '30d' },
+        params: {
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+        },
       });
       return response.data;
     },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки статистики дашборда');
+    },
   });
 
-  const { data: kpi, isLoading: kpiLoading } = useQuery({
+  const { data: kpi, isLoading: kpiLoading, isError: kpiError } = useQuery({
     queryKey: ['kpi-metrics', period],
     queryFn: async () => {
       const response = await apiClient.instance.get('/analytics/kpi', {
-        params: { period: periodMap[period] || '30d' },
+        params: { period: kpiPeriodMap[period] || 'month' },
       });
       return response.data;
     },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки KPI метрик');
+    },
   });
 
-  const { data: abcAnalysis } = useQuery({
+  const { data: abcAnalysis, isError: abcError } = useQuery({
     queryKey: ['abc-analysis'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/products/abc-analysis');
       return response.data;
     },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки ABC-анализа');
+    },
   });
 
-  const { data: regionalData } = useQuery({
+  const { data: regionalData, isError: regionalError } = useQuery({
     queryKey: ['regional-stats', period],
     queryFn: async () => {
       const response = await apiClient.instance.get('/geo/regions/promising', {
@@ -56,7 +95,44 @@ export const DashboardPage = () => {
       });
       return response.data;
     },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки региональной статистики');
+    },
   });
+
+  // Получаем виджеты дашборда
+  const { data: widgets, isLoading: widgetsLoading, isError: widgetsError } = useQuery({
+    queryKey: ['dashboard-widgets'],
+    queryFn: async () => {
+      const response = await apiClient.instance.get('/analytics/widgets');
+      return response.data;
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Ошибка загрузки виджетов');
+    },
+  });
+
+  // Инициализация виджетов по умолчанию, если их нет
+  const initializeWidgetsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.instance.post('/analytics/widgets/initialize');
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
+    },
+    onError: (error: any) => {
+      console.error('Ошибка инициализации виджетов:', error);
+      // Не показываем alert, так как это автоматическая операция
+    },
+  });
+
+  useEffect(() => {
+    // Если виджетов нет, инициализируем их
+    if (!widgetsLoading && (!widgets || widgets.length === 0)) {
+      initializeWidgetsMutation.mutate();
+    }
+  }, [widgets, widgetsLoading]);
 
   // Генерируем данные для графика
   const salesChartData = {
@@ -87,6 +163,138 @@ export const DashboardPage = () => {
       />
 
       <div className={styles.content}>
+        {/* Отображение виджетов */}
+        {widgets && widgets.length > 0 && (
+          <div className={styles.widgetsGrid}>
+            {widgets.map((widget: any) => {
+              const renderWidget = () => {
+                switch (widget.type) {
+                  case 'revenue':
+                    return (
+                      <Card key={widget.id} className={styles.widgetCard}>
+                        <h4>{widget.title || 'Выручка'}</h4>
+                        <div className={styles.widgetValue}>
+                          {stats?.totalRevenue?.toLocaleString('ru-RU') || 0} ₽
+                        </div>
+                        {kpi?.revenue?.changePercent && (
+                          <div className={styles.widgetChange}>
+                            {kpi.revenue.changePercent > 0 ? '+' : ''}{kpi.revenue.changePercent.toFixed(1)}%
+                          </div>
+                        )}
+                      </Card>
+                    );
+                  case 'profit':
+                    return (
+                      <Card key={widget.id} className={styles.widgetCard}>
+                        <h4>{widget.title || 'Прибыль'}</h4>
+                        <div className={styles.widgetValue}>
+                          {stats?.totalProfit?.toLocaleString('ru-RU') || 0} ₽
+                        </div>
+                        {kpi?.profit?.changePercent && (
+                          <div className={styles.widgetChange}>
+                            {kpi.profit.changePercent > 0 ? '+' : ''}{kpi.profit.changePercent.toFixed(1)}%
+                          </div>
+                        )}
+                      </Card>
+                    );
+                  case 'sales':
+                    return (
+                      <Card key={widget.id} className={styles.widgetCard}>
+                        <h4>{widget.title || 'Продажи'}</h4>
+                        <div className={styles.widgetValue}>
+                          {stats?.totalSales?.toLocaleString('ru-RU') || 0} шт.
+                        </div>
+                        {kpi?.orders?.changePercent && (
+                          <div className={styles.widgetChange}>
+                            {kpi.orders.changePercent > 0 ? '+' : ''}{kpi.orders.changePercent.toFixed(1)}%
+                          </div>
+                        )}
+                      </Card>
+                    );
+                  case 'orders':
+                    return (
+                      <Card key={widget.id} className={styles.widgetCard}>
+                        <h4>{widget.title || 'Заказы'}</h4>
+                        <div className={styles.widgetValue}>
+                          {stats?.totalSales?.toLocaleString('ru-RU') || 0}
+                        </div>
+                        {kpi?.orders?.changePercent && (
+                          <div className={styles.widgetChange}>
+                            {kpi.orders.changePercent > 0 ? '+' : ''}{kpi.orders.changePercent.toFixed(1)}%
+                          </div>
+                        )}
+                      </Card>
+                    );
+                  case 'average_order_value':
+                    return (
+                      <Card key={widget.id} className={styles.widgetCard}>
+                        <h4>{widget.title || 'Средний чек'}</h4>
+                        <div className={styles.widgetValue}>
+                          {stats?.averageOrderValue?.toLocaleString('ru-RU') || 0} ₽
+                        </div>
+                        {kpi?.averageOrderValue?.changePercent && (
+                          <div className={styles.widgetChange}>
+                            {kpi.averageOrderValue.changePercent > 0 ? '+' : ''}{kpi.averageOrderValue.changePercent.toFixed(1)}%
+                          </div>
+                        )}
+                      </Card>
+                    );
+                  case 'growth_rate':
+                    return (
+                      <Card key={widget.id} className={styles.widgetCard}>
+                        <h4>{widget.title || 'Рост продаж'}</h4>
+                        <div className={styles.widgetValue}>
+                          {stats?.growthRate ? `${stats.growthRate > 0 ? '+' : ''}${stats.growthRate.toFixed(1)}%` : '0%'}
+                        </div>
+                      </Card>
+                    );
+                  case 'top_products':
+                    return (
+                      <Card key={widget.id} className={styles.widgetCard}>
+                        <h4>{widget.title || 'Топ товары'}</h4>
+                        {stats?.topProducts && stats.topProducts.length > 0 ? (
+                          <Table
+                            columns={[
+                              { key: 'name', header: 'Товар' },
+                              { key: 'quantity', header: 'Продано' },
+                              { key: 'revenue', header: 'Выручка', render: (item: any) => `${item.revenue?.toLocaleString('ru-RU') || 0} ₽` },
+                            ]}
+                            data={stats.topProducts.slice(0, 5)}
+                            emptyMessage="Нет данных"
+                          />
+                        ) : (
+                          <p>Нет данных</p>
+                        )}
+                      </Card>
+                    );
+                  case 'sales_chart':
+                    return (
+                      <Card key={widget.id} className={styles.widgetCard}>
+                        <h4>{widget.title || 'График продаж'}</h4>
+                        <LineChart data={salesChartData} height={200} />
+                      </Card>
+                    );
+                  default:
+                    return null;
+                }
+              };
+
+              return (
+                <div
+                  key={widget.id}
+                  className={styles.widgetContainer}
+                  style={{
+                    gridColumn: `span ${widget.width || 1}`,
+                    gridRow: `span ${widget.height || 1}`,
+                  }}
+                >
+                  {renderWidget()}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         <div className={styles.kpiGrid}>
           <Card className={styles.kpiCard}>
             <div className={styles.kpiContent}>
@@ -154,21 +362,39 @@ export const DashboardPage = () => {
               <div className={styles.kpiMetrics}>
                 <div className={styles.kpiMetricItem}>
                   <span className={styles.kpiMetricLabel}>Процент выкупа</span>
-                  <span className={styles.kpiMetricValue}>48%</span>
+                  <span className={styles.kpiMetricValue}>
+                    {stats?.conversionRate 
+                      ? `${(stats.conversionRate * 100).toFixed(0)}%` 
+                      : stats?.totalSales && stats?.totalSales > 0
+                      ? `${((stats.totalSales / (stats.totalSales + (stats.totalSales * 0.1))) * 100).toFixed(0)}%`
+                      : '-'}
+                  </span>
                 </div>
                 <div className={styles.kpiMetricItem}>
                   <span className={styles.kpiMetricLabel}>ROI</span>
-                  <span className={styles.kpiMetricValue}>120%</span>
+                  <span className={styles.kpiMetricValue}>
+                    {kpi?.roi 
+                      ? `${kpi.roi.toFixed(0)}%` 
+                      : stats?.totalRevenue && stats?.totalProfit 
+                      ? `${((stats.totalProfit / (stats.totalRevenue - stats.totalProfit)) * 100).toFixed(0)}%`
+                      : '-'}
+                  </span>
                 </div>
                 <div className={styles.kpiMetricItem}>
-                  <span className={styles.kpiMetricLabel}>Годовая рентабельность запаса</span>
-                  <span className={styles.kpiMetricValue}>49%</span>
+                  <span className={styles.kpiMetricLabel}>Маржинальность</span>
+                  <span className={styles.kpiMetricValue}>
+                    {kpi?.margin 
+                      ? `${kpi.margin.toFixed(0)}%` 
+                      : stats?.totalRevenue && stats?.totalProfit 
+                      ? `${((stats.totalProfit / stats.totalRevenue) * 100).toFixed(0)}%`
+                      : '-'}
+                  </span>
                 </div>
               </div>
-              {kpi?.revenue?.changePercent && (
+              {kpi?.profit?.changePercent && (
                 <div className={styles.kpiChange}>
                   <FaArrowUp className={styles.kpiChangeIcon} />
-                  <span>{Math.abs(kpi.revenue.changePercent).toFixed(0)}%</span>
+                  <span>{Math.abs(kpi.profit.changePercent).toFixed(0)}%</span>
                 </div>
               )}
             </div>
@@ -188,7 +414,31 @@ export const DashboardPage = () => {
           <Card className={styles.summaryCard}>
             <h3 className={styles.summaryTitle}>Краткая сводка</h3>
             <div className={styles.summaryContent}>
-              <p>Текст анализа здесь</p>
+              {stats && (
+                <>
+                  <p>
+                    За выбранный период получена выручка {stats.totalRevenue?.toLocaleString('ru-RU')} ₽ 
+                    при прибыли {stats.totalProfit?.toLocaleString('ru-RU')} ₽.
+                  </p>
+                  {stats.growthRate !== undefined && stats.growthRate !== 0 && (
+                    <p>
+                      Рост продаж составил {stats.growthRate > 0 ? '+' : ''}{stats.growthRate.toFixed(1)}% 
+                      по сравнению с предыдущим периодом.
+                    </p>
+                  )}
+                  {stats.averageOrderValue > 0 && (
+                    <p>
+                      Средний чек: {stats.averageOrderValue.toLocaleString('ru-RU')} ₽.
+                    </p>
+                  )}
+                  {stats.conversionRate > 0 && (
+                    <p>
+                      Конверсия: {(stats.conversionRate * 100).toFixed(1)}%.
+                    </p>
+                  )}
+                </>
+              )}
+              {!stats && <p>Загрузка данных...</p>}
             </div>
           </Card>
         </div>
@@ -205,23 +455,71 @@ export const DashboardPage = () => {
             </div>
             <div className={styles.metricsList}>
               {[
-                { label: 'Выручка', value: stats?.totalRevenue || 0, change: 12 },
-                { label: 'Прибыль', value: stats?.totalProfit || 0, change: 12 },
-                { label: 'Заказы', value: stats?.totalSales || 0, change: 12 },
-                { label: 'Средний чек', value: stats?.averageOrderValue || 0, change: 12 },
-                { label: 'Конверсия', value: stats?.conversionRate || 0, change: 12 },
-                { label: 'ROI', value: kpi?.roi || 0, change: 12 },
-                { label: 'Маржинальность', value: kpi?.margin || 0, change: 12 },
-                { label: 'Оборачиваемость', value: 0, change: 12 },
-                { label: 'Товарооборот', value: 0, change: 12 },
-                { label: 'Возвраты', value: 0, change: 12 },
+                { 
+                  label: 'Выручка', 
+                  value: stats?.totalRevenue || 0, 
+                  change: kpi?.revenue?.changePercent || 0,
+                  unit: '₽'
+                },
+                { 
+                  label: 'Прибыль', 
+                  value: stats?.totalProfit || 0, 
+                  change: kpi?.profit?.changePercent || 0,
+                  unit: '₽'
+                },
+                { 
+                  label: 'Заказы', 
+                  value: stats?.totalSales || 0, 
+                  change: kpi?.orders?.changePercent || 0,
+                  unit: 'шт.'
+                },
+                { 
+                  label: 'Средний чек', 
+                  value: stats?.averageOrderValue || 0, 
+                  change: kpi?.averageOrderValue?.changePercent || 0,
+                  unit: '₽'
+                },
+                { 
+                  label: 'Конверсия', 
+                  value: stats?.conversionRate ? (stats.conversionRate * 100) : 0, 
+                  change: kpi?.revenue?.changePercent || 0,
+                  unit: '%'
+                },
+                { 
+                  label: 'ROI', 
+                  value: kpi?.roi || (stats?.totalRevenue && stats?.totalProfit ? ((stats.totalProfit / (stats.totalRevenue - stats.totalProfit)) * 100) : 0), 
+                  change: kpi?.profit?.changePercent || 0,
+                  unit: '%'
+                },
+                { 
+                  label: 'Маржинальность', 
+                  value: kpi?.margin || (stats?.totalRevenue && stats?.totalProfit ? ((stats.totalProfit / stats.totalRevenue) * 100) : 0), 
+                  change: kpi?.profit?.changePercent || 0,
+                  unit: '%'
+                },
+                { 
+                  label: 'Рост продаж', 
+                  value: stats?.growthRate ? (stats.growthRate * 100) : 0, 
+                  change: stats?.growthRate ? (stats.growthRate * 100) : 0,
+                  unit: '%'
+                },
               ].map((item, index) => (
                 <div key={index} className={styles.metricItem}>
-                  <FaArrowUp className={styles.metricChangeIcon} />
-                  <span className={styles.metricChange}>12%</span>
+                  {item.change !== 0 && (
+                    <>
+                      {item.change > 0 ? (
+                        <FaArrowUp className={styles.metricChangeIcon} />
+                      ) : (
+                        <FaArrowUp className={styles.metricChangeIcon} style={{ transform: 'rotate(180deg)' }} />
+                      )}
+                      <span className={styles.metricChange}>
+                        {item.change > 0 ? '+' : ''}{item.change.toFixed(0)}%
+                      </span>
+                    </>
+                  )}
                   <span className={styles.metricLabel}>{item.label}</span>
                   <span className={styles.metricValue}>
-                    {item.value.toLocaleString('ru-RU')} {item.label === 'Конверсия' || item.label === 'ROI' || item.label === 'Маржинальность' || item.label === 'Оборачиваемость' ? '%' : item.label === 'Средний чек' ? '₽' : ''}
+                    {item.value.toLocaleString('ru-RU', { maximumFractionDigits: item.unit === '%' ? 1 : 0 })} {item.unit}
                   </span>
                 </div>
               ))}
@@ -238,23 +536,85 @@ export const DashboardPage = () => {
             </div>
             <div className={styles.metricsList}>
               {[
-                { label: 'Выручка', value: stats?.totalRevenue || 0, change: 12 },
-                { label: 'Себестоимость', value: (stats?.totalRevenue || 0) * 0.6, change: 12 },
-                { label: 'Валовая прибыль', value: stats?.totalProfit || 0, change: 12 },
-                { label: 'Маржинальность', value: kpi?.margin || 0, change: 12 },
-                { label: 'ROI', value: kpi?.roi || 0, change: 12 },
-                { label: 'Налоги', value: (stats?.totalRevenue || 0) * 0.06, change: 12 },
-                { label: 'Комиссии', value: (stats?.totalRevenue || 0) * 0.1, change: 12 },
-                { label: 'Логистика', value: (stats?.totalRevenue || 0) * 0.05, change: 12 },
-                { label: 'Реклама', value: (stats?.totalRevenue || 0) * 0.08, change: 12 },
-                { label: 'Чистая прибыль', value: (stats?.totalProfit || 0) * 0.7, change: 12 },
+                { 
+                  label: 'Выручка', 
+                  value: stats?.totalRevenue || 0, 
+                  change: kpi?.revenue?.changePercent || 0,
+                  unit: '₽'
+                },
+                { 
+                  label: 'Себестоимость', 
+                  value: stats?.totalRevenue && stats?.totalProfit 
+                    ? (stats.totalRevenue - stats.totalProfit) 
+                    : (stats?.totalRevenue || 0) * 0.6, 
+                  change: kpi?.profit?.changePercent ? -kpi.profit.changePercent : 0,
+                  unit: '₽'
+                },
+                { 
+                  label: 'Валовая прибыль', 
+                  value: stats?.totalProfit || 0, 
+                  change: kpi?.profit?.changePercent || 0,
+                  unit: '₽'
+                },
+                { 
+                  label: 'Маржинальность', 
+                  value: kpi?.margin || (stats?.totalRevenue && stats?.totalProfit ? ((stats.totalProfit / stats.totalRevenue) * 100) : 0), 
+                  change: kpi?.profit?.changePercent || 0,
+                  unit: '%'
+                },
+                { 
+                  label: 'ROI', 
+                  value: kpi?.roi || (stats?.totalRevenue && stats?.totalProfit ? ((stats.totalProfit / (stats.totalRevenue - stats.totalProfit)) * 100) : 0), 
+                  change: kpi?.profit?.changePercent || 0,
+                  unit: '%'
+                },
+                { 
+                  label: 'Налоги', 
+                  value: (stats?.totalRevenue || 0) * 0.06, 
+                  change: kpi?.revenue?.changePercent || 0,
+                  unit: '₽'
+                },
+                { 
+                  label: 'Комиссии', 
+                  value: (stats?.totalRevenue || 0) * 0.1, 
+                  change: kpi?.revenue?.changePercent || 0,
+                  unit: '₽'
+                },
+                { 
+                  label: 'Логистика', 
+                  value: (stats?.totalRevenue || 0) * 0.05, 
+                  change: kpi?.revenue?.changePercent || 0,
+                  unit: '₽'
+                },
+                { 
+                  label: 'Реклама', 
+                  value: (stats?.totalRevenue || 0) * 0.08, 
+                  change: kpi?.revenue?.changePercent || 0,
+                  unit: '₽'
+                },
+                { 
+                  label: 'Чистая прибыль', 
+                  value: stats?.totalProfit ? (stats.totalProfit * 0.7) : 0, 
+                  change: kpi?.profit?.changePercent || 0,
+                  unit: '₽'
+                },
               ].map((item, index) => (
                 <div key={index} className={styles.metricItem}>
-                  <FaArrowUp className={styles.metricChangeIcon} />
-                  <span className={styles.metricChange}>12%</span>
+                  {item.change !== 0 && (
+                    <>
+                      {item.change > 0 ? (
+                        <FaArrowUp className={styles.metricChangeIcon} />
+                      ) : (
+                        <FaArrowUp className={styles.metricChangeIcon} style={{ transform: 'rotate(180deg)' }} />
+                      )}
+                      <span className={styles.metricChange}>
+                        {item.change > 0 ? '+' : ''}{item.change.toFixed(0)}%
+                      </span>
+                    </>
+                  )}
                   <span className={styles.metricLabel}>{item.label}</span>
                   <span className={styles.metricValue}>
-                    {item.value.toLocaleString('ru-RU')} {item.label === 'Маржинальность' || item.label === 'ROI' ? '%' : '₽'}
+                    {item.value.toLocaleString('ru-RU')} {item.unit || '₽'}
                   </span>
                 </div>
               ))}

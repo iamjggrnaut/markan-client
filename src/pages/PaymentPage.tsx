@@ -87,16 +87,16 @@ export const PaymentPage = () => {
     },
     onSuccess: () => {
       refetchPayment();
-      alert('Квитанция загружена! Ожидайте проверки администратором.');
+      toast.success('Квитанция загружена! Ожидайте проверки администратором.');
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Ошибка при загрузке квитанции');
+      toast.error(error.response?.data?.message || 'Ошибка при загрузке квитанции');
     },
   });
 
   const handleCreatePayment = () => {
     if (!selectedPlan) {
-      alert('Выберите тарифный план');
+      toast.warning('Выберите тарифный план');
       return;
     }
     createPaymentMutation.mutate({
@@ -112,13 +112,13 @@ export const PaymentPage = () => {
     // Проверяем тип файла
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
     if (!allowedTypes.includes(file.type)) {
-      alert('Недопустимый тип файла. Разрешены только изображения и PDF');
+      toast.warning('Недопустимый тип файла. Разрешены только изображения и PDF');
       return;
     }
 
     // Проверяем размер (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      alert('Размер файла превышает 10MB');
+      toast.warning('Размер файла превышает 10MB');
       return;
     }
 

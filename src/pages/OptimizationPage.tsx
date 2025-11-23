@@ -12,14 +12,41 @@ export const OptimizationPage = () => {
   const [source, setSource] = useState('marketplace');
   const [marketplace, setMarketplace] = useState<string>('');
 
+  // Маппинг периодов для вычисления дат
+  const periodDaysMap: Record<string, number> = {
+    week: 7,
+    month: 30,
+    quarter: 90,
+    year: 365,
+  };
+
+  // Вычисляем даты на основе периода
+  const getDateRange = () => {
+    const end = new Date();
+    let start = new Date();
+
+    const days = periodDaysMap[period] || 30;
+    start.setDate(end.getDate() - days);
+
+    return {
+      startDate: start.toISOString().split('T')[0],
+      endDate: end.toISOString().split('T')[0],
+    };
+  };
+
+  const dateRange = getDateRange();
+
   const { data: recommendations, isLoading } = useQuery({
-    queryKey: ['optimization-recommendations', period],
+    queryKey: ['optimization-recommendations', period, dateRange.startDate, dateRange.endDate],
     queryFn: async () => {
       // Получаем рекомендации по оптимизации
       const [products, analytics] = await Promise.all([
         apiClient.instance.get('/products/reorder-recommendations').catch(() => ({ data: [] })),
         apiClient.instance.get('/analytics/dashboard', {
-          params: { period: period === 'week' ? '7d' : period === 'month' ? '30d' : '90d' },
+          params: {
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate,
+          },
         }).catch(() => ({ data: {} })),
       ]);
 
