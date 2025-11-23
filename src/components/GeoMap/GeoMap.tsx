@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/auth.store';
+import { apiClient } from '../../services/api.client';
 import { GeoMapSVG } from './GeoMapSVG';
 import { RegionModal } from './RegionModal';
 import { GeoMapFilters } from './GeoMapFilters';
@@ -49,28 +50,14 @@ export const GeoMap: React.FC<GeoMapProps> = ({
   const loadRegionalStats = async () => {
     setIsLoading(true);
     try {
-      // Безопасное получение токена из store (в памяти)
-      const token = useAuthStore.getState().token;
-      const params = new URLSearchParams({
+      const params: any = {
         startDate: filters.startDate.toISOString(),
         endDate: filters.endDate.toISOString(),
         ...(organizationId ? { organizationId } : {}),
-      });
+      };
 
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const response = await fetch(
-        `${API_URL}/api/v1/geo/regions?${params}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
-      }
+      const response = await apiClient.instance.get('/geo/regions', { params });
+      setStats(response.data);
     } catch (error) {
       console.error('Failed to load regional stats:', error);
     } finally {

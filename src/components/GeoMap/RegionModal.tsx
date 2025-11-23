@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/auth.store';
+import { apiClient } from '../../services/api.client';
 import { RegionalStats } from './GeoMap';
 import styles from './RegionModal.module.scss';
 
@@ -28,28 +29,17 @@ export const RegionModal: React.FC<RegionModalProps> = ({
   const loadRegionDetails = async () => {
     setIsLoading(true);
     try {
-      // Безопасное получение токена из store (в памяти)
-      const token = useAuthStore.getState().token;
-      const params = new URLSearchParams({
+      const params: any = {
         startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
         endDate: new Date().toISOString(),
         ...(organizationId ? { organizationId } : {}),
-      });
+      };
 
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const response = await fetch(
-        `${API_URL}/api/v1/geo/regions/${encodeURIComponent(region)}?${params}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+      const response = await apiClient.instance.get(
+        `/geo/regions/${encodeURIComponent(region)}`,
+        { params }
       );
-
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
-      }
+      setStats(response.data);
     } catch (error) {
       console.error('Failed to load region details:', error);
     } finally {

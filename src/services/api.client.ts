@@ -3,12 +3,26 @@ import { useAuthStore } from '../store/auth.store';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
+// Нормализуем URL: убираем trailing slash и /api/v1 если он уже есть
+const normalizeApiUrl = (url: string): string => {
+  let normalized = url.trim();
+  // Убираем trailing slash
+  normalized = normalized.replace(/\/+$/, '');
+  // Если URL уже содержит /api/v1, убираем его
+  if (normalized.endsWith('/api/v1')) {
+    normalized = normalized.replace(/\/api\/v1$/, '');
+  }
+  return normalized;
+};
+
+const normalizedApiUrl = normalizeApiUrl(API_URL);
+
 class ApiClient {
   private client: AxiosInstance;
 
   constructor() {
     this.client = axios.create({
-      baseURL: `${API_URL}/api/v1`,
+      baseURL: `${normalizedApiUrl}/api/v1`,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -44,7 +58,7 @@ class ApiClient {
           try {
             originalRequest._retry = true;
             // Создаем отдельный экземпляр axios для refresh, чтобы избежать циклической зависимости
-            const refreshClient = axios.create({ baseURL: `${API_URL}/api/v1` });
+            const refreshClient = axios.create({ baseURL: `${normalizedApiUrl}/api/v1` });
             const response = await refreshClient.post('/auth/refresh', {
               refresh_token: refreshToken,
             });
