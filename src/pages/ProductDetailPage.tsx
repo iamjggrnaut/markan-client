@@ -34,7 +34,7 @@ export const ProductDetailPage = () => {
   });
 
   // Получаем прогноз остатков
-  const { data: stockForecast, isLoading: forecastLoading } = useQuery({
+  const { data: stockForecast } = useQuery({
     queryKey: ['product-stock-forecast', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/stock-forecast`);
@@ -44,7 +44,7 @@ export const ProductDetailPage = () => {
   });
 
   // Получаем оборачиваемость запасов
-  const { data: turnoverRate, isLoading: turnoverLoading } = useQuery({
+  const { data: turnoverRate } = useQuery({
     queryKey: ['product-turnover-rate', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/turnover-rate`);

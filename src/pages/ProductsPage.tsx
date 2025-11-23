@@ -4,16 +4,13 @@ import { useQuery } from '@tanstack/react-query';
 import { Table } from '../components/Table';
 import { Card } from '../components/Card';
 import { Button, Input } from '../components/Form';
-import { Modal } from '../components/Modal';
 import { Filters } from '../components/Filters';
 import { apiClient } from '../services/api.client';
-import { toast } from '../utils/toast';
 import styles from './ProductsPage.module.scss';
 
 export const ProductsPage = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [period, setPeriod] = useState('month');
   const [source, setSource] = useState('marketplace');
 
@@ -191,40 +188,6 @@ export const ProductsPage = () => {
         </div>
       </div>
       </div>
-
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={selectedProduct?.name || 'Детали товара'}
-        size="lg"
-      >
-        {selectedProduct && (
-          <div className={styles.productDetails}>
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>SKU:</span>
-              <span>{selectedProduct.sku}</span>
-            </div>
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Цена:</span>
-              <span>{selectedProduct.price?.toLocaleString('ru-RU')} ₽</span>
-            </div>
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Остаток:</span>
-              <span>{selectedProduct.stock?.quantity || 0}</span>
-            </div>
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Продажи:</span>
-              <span>{selectedProduct.totalSales || 0}</span>
-            </div>
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Выручка:</span>
-              <span>
-                {selectedProduct.totalRevenue?.toLocaleString('ru-RU') || 0} ₽
-              </span>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 };

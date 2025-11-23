@@ -6,7 +6,6 @@ import { Button } from '../components/Form';
 import { LineChart } from '../components/Chart';
 import { Modal } from '../components/Modal';
 import { apiClient } from '../services/api.client';
-import { toast } from '../utils/toast';
 import styles from './CompetitorsPage.module.scss';
 
 export const CompetitorsPage = () => {

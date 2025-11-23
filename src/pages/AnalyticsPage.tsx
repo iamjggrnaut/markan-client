@@ -4,7 +4,6 @@ import { apiClient } from '../services/api.client';
 import { Card } from '../components/Card';
 import { LineChart, BarChart } from '../components/Chart';
 import { Filters } from '../components/Filters';
-import { toast } from '../utils/toast';
 import styles from './AnalyticsPage.module.scss';
 
 export const AnalyticsPage = () => {

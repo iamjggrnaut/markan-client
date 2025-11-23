@@ -5,9 +5,7 @@ import { Card } from '../components/Card';
 import { LineChart } from '../components/Chart';
 import { Filters } from '../components/Filters';
 import { Table } from '../components/Table';
-import { Button } from '../components/Form';
 import { FaArrowUp } from 'react-icons/fa';
-import { toast } from '../utils/toast';
 import styles from './DashboardPage.module.scss';
 
 export const DashboardPage = () => {

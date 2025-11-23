@@ -5,7 +5,6 @@ import { Card } from '../components/Card';
 import { Filters } from '../components/Filters';
 import { Table } from '../components/Table';
 import { apiClient } from '../services/api.client';
-import { toast } from '../utils/toast';
 import styles from './GeoPage.module.scss';
 
 export const GeoPage = () => {
