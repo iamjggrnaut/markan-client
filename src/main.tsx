@@ -20,25 +20,12 @@ const queryClient = new QueryClient({
       retry: 1,
     },
   },
-  mutationCache: {
-    onError: (error: any) => {
-      // Преобразуем объект ошибки в строку для предотвращения React Error #31
-      const errorMessage = error?.response?.data?.message 
-        || error?.message 
-        || 'Произошла ошибка при выполнении операции';
-      toast.error(errorMessage);
-    },
-  },
-  queryCache: {
-    onError: (error: any) => {
-      // Преобразуем объект ошибки в строку для предотвращения React Error #31
-      const errorMessage = error?.response?.data?.message 
-        || error?.message 
-        || 'Произошла ошибка при загрузке данных';
-      toast.error(errorMessage);
-    },
-  },
 });
+
+// Примечание: Глобальная обработка ошибок не требуется, так как:
+// 1. Ошибки обрабатываются в axios interceptor (api.client.ts)
+// 2. Каждый useQuery/useMutation имеет свой onError обработчик
+// 3. Это предотвращает React Error #31, так как объекты ошибок не рендерятся напрямую
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
