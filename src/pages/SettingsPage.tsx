@@ -82,14 +82,11 @@ export const SettingsPage = () => {
     },
   });
 
-  const { data: userSettings, isError: userSettingsError } = useQuery({
+  const { data: userSettings } = useQuery({
     queryKey: ['user-settings'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/users/me/settings');
-      return response.data;
-    },
-    onError: (error: any) => {
-      console.error('Ошибка загрузки настроек пользователя:', error);
+      return response.data as any;
     },
   });
 
@@ -117,36 +114,27 @@ export const SettingsPage = () => {
     },
   });
 
-  const { data: userPlan, isError: userPlanError } = useQuery({
+  const { data: userPlan } = useQuery({
     queryKey: ['user-plan'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/users/me');
-      return response.data.plan;
-    },
-    onError: (error: any) => {
-      console.error('Ошибка загрузки тарифного плана:', error);
+      return (response.data as any).plan;
     },
   });
 
-  const { data: trialInfo, isError: trialInfoError } = useQuery({
+  const { data: trialInfo } = useQuery({
     queryKey: ['trial-info'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/plans/my/trial');
-      return response.data;
-    },
-    onError: (error: any) => {
-      console.error('Ошибка загрузки информации о триале:', error);
+      return response.data as any;
     },
   });
 
-  const { data: plans, isError: plansError } = useQuery({
+  const { data: plans } = useQuery({
     queryKey: ['plans'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/plans');
-      return response.data;
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки тарифных планов');
+      return response.data as any[];
     },
   });
 
@@ -380,7 +368,7 @@ export const SettingsPage = () => {
                 <div className={styles.settingItem}>
                   <label className={styles.settingLabel}>Язык интерфейса</label>
                   <Select
-                    value={userSettings.language || 'ru'}
+                    value={(userSettings as any)?.language || 'ru'}
                     onChange={(e) => {
                       updateUserSettings.mutate({
                         ...userSettings,
@@ -398,7 +386,7 @@ export const SettingsPage = () => {
                 <div className={styles.settingItem}>
                   <label className={styles.settingLabel}>Часовой пояс</label>
                   <Select
-                    value={userSettings.timezone || 'Europe/Moscow'}
+                    value={(userSettings as any)?.timezone || 'Europe/Moscow'}
                     onChange={(e) => {
                       updateUserSettings.mutate({
                         ...userSettings,
@@ -420,7 +408,7 @@ export const SettingsPage = () => {
                   <label className={styles.settingLabel}>
                     <input
                       type="checkbox"
-                      checked={userSettings.emailNotifications !== false}
+                      checked={(userSettings as any)?.emailNotifications !== false}
                       onChange={(e) => {
                         updateUserSettings.mutate({
                           ...userSettings,
@@ -437,7 +425,7 @@ export const SettingsPage = () => {
                   <label className={styles.settingLabel}>
                     <input
                       type="checkbox"
-                      checked={userSettings.pushNotifications !== false}
+                      checked={(userSettings as any)?.pushNotifications !== false}
                       onChange={(e) => {
                         updateUserSettings.mutate({
                           ...userSettings,
@@ -454,7 +442,7 @@ export const SettingsPage = () => {
                   <label className={styles.settingLabel}>
                     <input
                       type="checkbox"
-                      checked={userSettings.telegramNotifications !== false}
+                      checked={(userSettings as any)?.telegramNotifications !== false}
                       onChange={(e) => {
                         updateUserSettings.mutate({
                           ...userSettings,
@@ -832,8 +820,8 @@ export const SettingsPage = () => {
         {activeTab === 'plan' && (
           <Card title="Тарифный план">
             <div className={styles.planInfo}>
-              <h3>Текущий план: {userPlan?.name || 'Basic'}</h3>
-              {trialInfo?.isTrial && (
+              <h3>Текущий план: {(userPlan as any)?.name || 'Basic'}</h3>
+              {(trialInfo as any)?.isTrial && (
                 <div className={styles.trialInfo} style={{ 
                   marginTop: '1rem', 
                   padding: '1rem', 
@@ -845,11 +833,11 @@ export const SettingsPage = () => {
                     🎉 Пробный период активен
                   </p>
                   <p style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                    Осталось дней: <strong>{trialInfo.daysRemaining}</strong>
+                    Осталось дней: <strong>{(trialInfo as any).daysRemaining}</strong>
                   </p>
-                  {trialInfo.trialEndDate && (
+                  {(trialInfo as any).trialEndDate && (
                     <p style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                      Завершится: {new Date(trialInfo.trialEndDate).toLocaleDateString('ru-RU')}
+                      Завершится: {new Date((trialInfo as any).trialEndDate).toLocaleDateString('ru-RU')}
                     </p>
                   )}
                 </div>
@@ -885,7 +873,7 @@ export const SettingsPage = () => {
                   })}
                 </div>
 
-                {plans && (
+                {plans && Array.isArray(plans) && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
                     {plans.map((plan: any) => {
                       const billingPeriods = plan.billingPeriods || {};
@@ -901,7 +889,7 @@ export const SettingsPage = () => {
                             border: '2px solid #e5e7eb',
                             borderRadius: '12px',
                             padding: '1.5rem',
-                            backgroundColor: plan.type === userPlan?.type ? '#f0f9ff' : 'white',
+                            backgroundColor: plan.type === (userPlan as any)?.type ? '#f0f9ff' : 'white',
                           }}
                         >
                           <h4 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
@@ -924,16 +912,16 @@ export const SettingsPage = () => {
                             </div>
                           </div>
                           <Button
-                            variant={plan.type === userPlan?.type ? 'secondary' : 'primary'}
+                            variant={plan.type === (userPlan as any)?.type ? 'secondary' : 'primary'}
                             onClick={() => {
-                              if (plan.type === userPlan?.type) return;
+                              if (plan.type === (userPlan as any)?.type) return;
                               // Перенаправляем на страницу оплаты
                               window.location.href = `/payment?plan=${plan.type}&period=${selectedBillingPeriod}`;
                             }}
-                            disabled={plan.type === userPlan?.type}
+                            disabled={plan.type === (userPlan as any)?.type}
                             style={{ width: '100%' }}
                           >
-                            {plan.type === userPlan?.type ? 'Текущий план' : 'Оплатить'}
+                            {plan.type === (userPlan as any)?.type ? 'Текущий план' : 'Оплатить'}
                           </Button>
                         </div>
                       );

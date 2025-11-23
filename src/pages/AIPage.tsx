@@ -13,7 +13,7 @@ export const AIPage = () => {
   const [selectedProductId, setSelectedProductId] = useState<string>('');
 
   // Получаем все AI рекомендации
-  const { data: recommendations, isLoading, isError: recommendationsError } = useQuery({
+  const { data: recommendations, isLoading } = useQuery({
     queryKey: ['ai-recommendations', selectedType],
     queryFn: async () => {
       const response = await apiClient.instance.get('/ai/recommendations', {
@@ -22,49 +22,36 @@ export const AIPage = () => {
           limit: 100,
         },
       });
-      return response.data;
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки AI рекомендаций');
+      return response.data as any[];
     },
   });
 
   // Получаем список товаров для прогноза спроса
-  const { data: products, isError: productsError } = useQuery({
+  const { data: products } = useQuery({
     queryKey: ['products-list'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/products', { params: { limit: 100 } });
-      return Array.isArray(response.data) ? response.data : (response.data?.products || []);
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки списка товаров');
+      return Array.isArray(response.data) ? response.data : (response.data?.products || []) as any[];
     },
   });
 
   // Получаем прогноз спроса для выбранного товара
-  const { data: demandForecast, isLoading: demandForecastLoading, isError: demandForecastError } = useQuery({
+  const { data: demandForecast, isLoading: demandForecastLoading } = useQuery({
     queryKey: ['ai-demand-forecast', selectedProductId],
     queryFn: async () => {
       if (!selectedProductId) return null;
       const response = await apiClient.instance.get(`/ai/forecast/demand/${selectedProductId}`);
-      return response.data;
+      return response.data as any;
     },
     enabled: !!selectedProductId,
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки прогноза спроса');
-    },
   });
 
   // Получаем аномалии
-  const { data: anomalies, isError: anomaliesError } = useQuery({
+  const { data: anomalies } = useQuery({
     queryKey: ['ai-anomalies'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/ai/anomalies');
-      return response.data;
-    },
-    onError: (error: any) => {
-      console.error('Ошибка загрузки аномалий:', error);
-      // Не показываем toast, так как это не критично
+      return response.data as any[];
     },
   });
 
@@ -230,7 +217,7 @@ export const AIPage = () => {
               onChange={(e) => setSelectedProductId(e.target.value)}
               options={[
                 { value: '', label: 'Выберите товар' },
-                ...(products?.map((p: any) => ({ value: p.id, label: p.name })) || []),
+                ...(Array.isArray(products) ? products.map((p: any) => ({ value: p.id, label: p.name })) : []),
               ]}
               style={{ width: '100%', marginTop: '0.5rem' }}
             />
@@ -238,20 +225,20 @@ export const AIPage = () => {
           {demandForecastLoading && <p>Загрузка прогноза...</p>}
           {demandForecast && (
             <div className={styles.forecastResult}>
-              <h3>Прогноз спроса на {demandForecast.days || 30} дней:</h3>
+              <h3>Прогноз спроса на {(demandForecast as any).days || 30} дней:</h3>
               <div className={styles.forecastMetrics}>
                 <div className={styles.forecastMetric}>
                   <span className={styles.forecastLabel}>Ожидаемое количество продаж:</span>
-                  <span className={styles.forecastValue}>{demandForecast.predictedSales || 0} шт.</span>
+                  <span className={styles.forecastValue}>{(demandForecast as any).predictedSales || 0} шт.</span>
                 </div>
                 <div className={styles.forecastMetric}>
                   <span className={styles.forecastLabel}>Рекомендуемый запас:</span>
-                  <span className={styles.forecastValue}>{demandForecast.recommendedStock || 0} шт.</span>
+                  <span className={styles.forecastValue}>{(demandForecast as any).recommendedStock || 0} шт.</span>
                 </div>
-                {demandForecast.confidence && (
+                {(demandForecast as any).confidence && (
                   <div className={styles.forecastMetric}>
                     <span className={styles.forecastLabel}>Уверенность прогноза:</span>
-                    <span className={styles.forecastValue}>{(demandForecast.confidence * 100).toFixed(1)}%</span>
+                    <span className={styles.forecastValue}>{((demandForecast as any).confidence * 100).toFixed(1)}%</span>
                   </div>
                 )}
               </div>
@@ -262,7 +249,7 @@ export const AIPage = () => {
           )}
         </Card>
 
-        {anomalies && anomalies.length > 0 && (
+        {anomalies && Array.isArray(anomalies) && anomalies.length > 0 && (
           <Card className={styles.anomaliesCard}>
             <h3 className={styles.anomaliesTitle}>
               <FaExclamationTriangle /> Обнаруженные аномалии
@@ -287,7 +274,7 @@ export const AIPage = () => {
           <h3 className={styles.recommendationsTitle}>Рекомендации</h3>
           <Table
             columns={columns}
-            data={recommendations || []}
+            data={Array.isArray(recommendations) ? recommendations : []}
             loading={isLoading}
             emptyMessage="Рекомендации не найдены"
           />

@@ -7,26 +7,23 @@ import { Button, Input } from '../components/Form';
 import { Modal } from '../components/Modal';
 import { Filters } from '../components/Filters';
 import { apiClient } from '../services/api.client';
+import { toast } from '../utils/toast';
 import styles from './ProductsPage.module.scss';
 
 export const ProductsPage = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [period, setPeriod] = useState('month');
   const [source, setSource] = useState('marketplace');
 
-  const { data: productsData, isLoading, isError: productsError } = useQuery({
+  const { data: productsData, isLoading } = useQuery({
     queryKey: ['products', search],
     queryFn: async () => {
       const response = await apiClient.instance.get('/products', {
         params: { search },
       });
-      return response.data;
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки товаров');
+      return response.data as any;
     },
   });
 
@@ -35,28 +32,21 @@ export const ProductsPage = () => {
     ? productsData 
     : (productsData?.products || []);
 
-  const { data: abcAnalysis, isError: abcError } = useQuery({
+  const { data: abcAnalysis } = useQuery({
     queryKey: ['abc-analysis'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/products/abc-analysis');
-      return response.data;
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки ABC-анализа');
+      return response.data as any;
     },
   });
 
-  const { data: stockForecast, error: stockForecastError, isError: stockForecastIsError } = useQuery({
+  const { data: stockForecast } = useQuery({
     queryKey: ['reorder-recommendations'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/products/reorder-recommendations');
-      return response.data;
+      return response.data as any;
     },
     retry: false, // Не повторять запрос при ошибке
-    onError: (error: any) => {
-      // Не показываем toast для этого запроса, так как он не критичен
-      console.error('Ошибка загрузки рекомендаций по остаткам:', error);
-    },
   });
 
   const columns = [
@@ -147,19 +137,19 @@ export const ProductsPage = () => {
                 <div className={styles.abcItem}>
                   <span className={styles.abcLabel}>Категория A:</span>
                   <span className={styles.abcValue}>
-                    {abcAnalysis.categoryA?.count || 0} товаров
+                    {((abcAnalysis as any).categoryA?.count || 0)} товаров
                   </span>
                 </div>
                 <div className={styles.abcItem}>
                   <span className={styles.abcLabel}>Категория B:</span>
                   <span className={styles.abcValue}>
-                    {abcAnalysis.categoryB?.count || 0} товаров
+                    {((abcAnalysis as any).categoryB?.count || 0)} товаров
                   </span>
                 </div>
                 <div className={styles.abcItem}>
                   <span className={styles.abcLabel}>Категория C:</span>
                   <span className={styles.abcValue}>
-                    {abcAnalysis.categoryC?.count || 0} товаров
+                    {((abcAnalysis as any).categoryC?.count || 0)} товаров
                   </span>
                 </div>
               </div>
@@ -169,11 +159,7 @@ export const ProductsPage = () => {
           </Card>
 
           <Card title="Прогноз остатков">
-            {stockForecastError ? (
-              <div style={{ color: 'var(--color-error)', padding: '1rem', fontSize: '0.875rem' }}>
-                Ошибка загрузки прогноза остатков
-              </div>
-            ) : stockForecast ? (
+            {stockForecast ? (
               <div className={styles.forecastStats}>
                 <div className={styles.forecastItem}>
                   <span className={styles.forecastLabel}>

@@ -4,6 +4,7 @@ import { Table } from '../components/Table';
 import { Card } from '../components/Card';
 import { Filters } from '../components/Filters';
 import { apiClient } from '../services/api.client';
+import { toast } from '../utils/toast';
 import styles from './OrdersPage.module.scss';
 
 export const OrdersPage = () => {
@@ -37,7 +38,7 @@ export const OrdersPage = () => {
   const dateRange = getDateRange();
 
   // Получаем заказы из всех активных интеграций
-  const { data: ordersData, isLoading, isError: ordersError } = useQuery({
+  const { data: ordersData, isLoading } = useQuery({
     queryKey: ['orders', dateRange.startDate, dateRange.endDate, marketplace],
     queryFn: async () => {
       if (!integrations || integrations.length === 0) {

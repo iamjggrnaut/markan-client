@@ -14,83 +14,64 @@ export const ProductDetailPage = () => {
   const navigate = useNavigate();
 
   // Получаем информацию о товаре
-  const { data: product, isLoading: productLoading, isError: productError } = useQuery({
+  const { data: product, isLoading: productLoading } = useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}`);
-      return response.data;
+      return response.data as any;
     },
     enabled: !!id,
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки информации о товаре');
-    },
   });
 
   // Получаем прибыльность товара
-  const { data: profitability, isLoading: profitabilityLoading, isError: profitabilityError } = useQuery({
+  const { data: profitability } = useQuery({
     queryKey: ['product-profitability', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/profitability`);
-      return response.data;
+      return response.data as any;
     },
     enabled: !!id,
-    onError: (error: any) => {
-      console.error('Ошибка загрузки прибыльности:', error);
-      // Не показываем toast, так как это не критично
-    },
   });
 
   // Получаем прогноз остатков
-  const { data: stockForecast, isLoading: forecastLoading, isError: forecastError } = useQuery({
+  const { data: stockForecast, isLoading: forecastLoading } = useQuery({
     queryKey: ['product-stock-forecast', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/stock-forecast`);
-      return response.data;
+      return response.data as any;
     },
     enabled: !!id,
-    onError: (error: any) => {
-      console.error('Ошибка загрузки прогноза остатков:', error);
-    },
   });
 
   // Получаем оборачиваемость запасов
-  const { data: turnoverRate, isLoading: turnoverLoading, isError: turnoverError } = useQuery({
+  const { data: turnoverRate, isLoading: turnoverLoading } = useQuery({
     queryKey: ['product-turnover-rate', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/turnover-rate`);
-      return response.data;
+      return response.data as any;
     },
     enabled: !!id,
-    onError: (error: any) => {
-      console.error('Ошибка загрузки оборачиваемости:', error);
-    },
   });
 
   // Получаем список интеграций для синхронизации
-  const { data: integrations, isError: integrationsError } = useQuery({
+  const { data: integrations } = useQuery({
     queryKey: ['integrations'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/integrations');
-      return response.data;
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки интеграций');
+      return response.data as any[];
     },
   });
 
   // Получаем историю остатков
-  const { data: stockHistory, isLoading: historyLoading, isError: historyError } = useQuery({
+  const { data: stockHistory, isLoading: historyLoading } = useQuery({
     queryKey: ['product-stock-history', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/stock-history`, {
         params: { limit: 100 },
       });
-      return response.data;
+      return response.data as any[];
     },
     enabled: !!id,
-    onError: (error: any) => {
-      console.error('Ошибка загрузки истории остатков:', error);
-    },
   });
 
   // Мутация для синхронизации остатков
@@ -131,7 +112,7 @@ export const ProductDetailPage = () => {
   }
 
   // Формируем данные для графика истории остатков
-  const stockHistoryChartData = stockHistory
+  const stockHistoryChartData = stockHistory && Array.isArray(stockHistory)
     ? {
         labels: stockHistory.map((item: any) =>
           new Date(item.date || item.createdAt).toLocaleDateString('ru-RU')
@@ -178,7 +159,7 @@ export const ProductDetailPage = () => {
           >
             <FaArrowLeft /> Назад к списку
           </Button>
-          <h1 className={styles.title}>{product.name || 'Товар'}</h1>
+          <h1 className={styles.title}>{(product as any)?.name || 'Товар'}</h1>
         </div>
 
         <div className={styles.grid}>
@@ -189,30 +170,30 @@ export const ProductDetailPage = () => {
               <div className={styles.infoGrid}>
                 <div className={styles.infoItem}>
                   <span className={styles.infoLabel}>SKU:</span>
-                  <span className={styles.infoValue}>{product.sku || '-'}</span>
+                  <span className={styles.infoValue}>{(product as any)?.sku || '-'}</span>
                 </div>
                 <div className={styles.infoItem}>
                   <span className={styles.infoLabel}>Цена:</span>
                   <span className={styles.infoValue}>
-                    {product.price?.toLocaleString('ru-RU') || 0} ₽
+                    {(product as any)?.price?.toLocaleString('ru-RU') || 0} ₽
                   </span>
                 </div>
                 <div className={styles.infoItem}>
                   <span className={styles.infoLabel}>Остаток:</span>
                   <span className={styles.infoValue}>
-                    {product.stock?.quantity || 0} шт.
+                    {(product as any)?.stock?.quantity || 0} шт.
                   </span>
                 </div>
                 <div className={styles.infoItem}>
                   <span className={styles.infoLabel}>Продажи:</span>
                   <span className={styles.infoValue}>
-                    {product.totalSales || 0} шт.
+                    {(product as any)?.totalSales || 0} шт.
                   </span>
                 </div>
                 <div className={styles.infoItem}>
                   <span className={styles.infoLabel}>Выручка:</span>
                   <span className={styles.infoValue}>
-                    {(product.totalRevenue || 0).toLocaleString('ru-RU')} ₽
+                    {((product as any)?.totalRevenue || 0).toLocaleString('ru-RU')} ₽
                   </span>
                 </div>
               </div>
@@ -228,25 +209,25 @@ export const ProductDetailPage = () => {
                   <div className={styles.profitabilityItem}>
                     <span className={styles.profitabilityLabel}>Валовая прибыль:</span>
                     <span className={styles.profitabilityValue}>
-                      {(profitability.grossProfit || 0).toLocaleString('ru-RU')} ₽
+                      {((profitability as any).grossProfit || 0).toLocaleString('ru-RU')} ₽
                     </span>
                   </div>
                   <div className={styles.profitabilityItem}>
                     <span className={styles.profitabilityLabel}>Маржинальность:</span>
                     <span className={styles.profitabilityValue}>
-                      {(profitability.margin || 0).toFixed(2)}%
+                      {((profitability as any).margin || 0).toFixed(2)}%
                     </span>
                   </div>
                   <div className={styles.profitabilityItem}>
                     <span className={styles.profitabilityLabel}>ROI:</span>
                     <span className={styles.profitabilityValue}>
-                      {(profitability.roi || 0).toFixed(2)}%
+                      {((profitability as any).roi || 0).toFixed(2)}%
                     </span>
                   </div>
                   <div className={styles.profitabilityItem}>
                     <span className={styles.profitabilityLabel}>Себестоимость:</span>
                     <span className={styles.profitabilityValue}>
-                      {(profitability.costPrice || 0).toLocaleString('ru-RU')} ₽
+                      {((profitability as any).costPrice || 0).toLocaleString('ru-RU')} ₽
                     </span>
                   </div>
                 </div>
@@ -263,20 +244,20 @@ export const ProductDetailPage = () => {
                   <div className={styles.forecastItem}>
                     <span className={styles.forecastLabel}>Дней до исчерпания:</span>
                     <span className={styles.forecastValue}>
-                      {stockForecast.daysUntilOutOfStock || 'Не определено'}
+                      {((stockForecast as any).daysUntilOutOfStock || 'Не определено')}
                     </span>
                   </div>
                   <div className={styles.forecastItem}>
                     <span className={styles.forecastLabel}>Рекомендуемый заказ:</span>
                     <span className={styles.forecastValue}>
-                      {stockForecast.recommendedOrderQuantity || 0} шт.
+                      {((stockForecast as any).recommendedOrderQuantity || 0)} шт.
                     </span>
                   </div>
-                  {stockForecast.forecastDate && (
+                  {(stockForecast as any)?.forecastDate && (
                     <div className={styles.forecastItem}>
                       <span className={styles.forecastLabel}>Дата исчерпания:</span>
                       <span className={styles.forecastValue}>
-                        {new Date(stockForecast.forecastDate).toLocaleDateString('ru-RU')}
+                        {new Date((stockForecast as any).forecastDate).toLocaleDateString('ru-RU')}
                       </span>
                     </div>
                   )}
@@ -294,13 +275,13 @@ export const ProductDetailPage = () => {
                   <div className={styles.turnoverItem}>
                     <span className={styles.turnoverLabel}>Оборачиваемость:</span>
                     <span className={styles.turnoverValue}>
-                      {(turnoverRate.turnoverRate || 0).toFixed(2)} раз/год
+                      {((turnoverRate as any).turnoverRate || 0).toFixed(2)} раз/год
                     </span>
                   </div>
                   <div className={styles.turnoverItem}>
                     <span className={styles.turnoverLabel}>Дней оборота:</span>
                     <span className={styles.turnoverValue}>
-                      {turnoverRate.daysOfInventory || 0} дней
+                      {((turnoverRate as any).daysOfInventory || 0)} дней
                     </span>
                   </div>
                 </div>
@@ -308,7 +289,7 @@ export const ProductDetailPage = () => {
             )}
 
             {/* История остатков */}
-            {stockHistory && stockHistory.length > 0 && (
+            {stockHistory && Array.isArray(stockHistory) && stockHistory.length > 0 && (
               <Card className={styles.historyCard}>
                 <h2 className={styles.cardTitle}>
                   <FaBox /> История остатков
@@ -321,7 +302,7 @@ export const ProductDetailPage = () => {
                 <div className={styles.tableContainer}>
                   <Table
                     columns={stockHistoryColumns}
-                    data={stockHistory}
+                    data={Array.isArray(stockHistory) ? stockHistory : []}
                     loading={historyLoading}
                     emptyMessage="История остатков отсутствует"
                   />
@@ -334,7 +315,7 @@ export const ProductDetailPage = () => {
             <Card className={styles.actionsCard}>
               <h3 className={styles.sidebarTitle}>Действия</h3>
               <div className={styles.actionsList}>
-                {integrations && integrations.length > 0 ? (
+                {integrations && Array.isArray(integrations) && integrations.length > 0 ? (
                   <div className={styles.syncActions}>
                     {integrations.map((integration: any) => (
                       <Button

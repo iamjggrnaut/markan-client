@@ -97,7 +97,9 @@ class ToastService {
       }
 
       toastElement.textContent = toast.message;
-      this.container.appendChild(toastElement);
+      if (this.container) {
+        this.container.appendChild(toastElement);
+      }
 
       // Автоматическое удаление
       const duration = toast.duration || (toast.type === 'error' ? 5000 : 3000);

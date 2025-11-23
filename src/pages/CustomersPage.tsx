@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from '../components/Card';
 import { Table } from '../components/Table';
-import { Button, Input, Select } from '../components/Form';
+import { Button, Input } from '../components/Form';
 import { Modal } from '../components/Modal';
 import { apiClient } from '../services/api.client';
 import { toast } from '../utils/toast';
@@ -29,40 +29,31 @@ export const CustomersPage = () => {
   });
 
   // Получаем клиентов выбранного сегмента
-  const { data: segmentMembers, isLoading: membersLoading, isError: membersError } = useQuery({
+  const { data: segmentMembers, isLoading: membersLoading } = useQuery({
     queryKey: ['segment-members', selectedSegment],
     queryFn: async () => {
       if (!selectedSegment) return [];
       const response = await apiClient.instance.get(`/customers/segments/${selectedSegment}/members`);
-      return response.data;
+      return response.data as any[];
     },
     enabled: !!selectedSegment,
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки клиентов сегмента');
-    },
   });
 
   // Получаем анализ повторных покупок
-  const { data: repeatPurchaseAnalysis, isError: repeatPurchaseError } = useQuery({
+  const { data: repeatPurchaseAnalysis } = useQuery({
     queryKey: ['repeat-purchase-analysis'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/customers/repeat-purchase');
-      return response.data;
-    },
-    onError: (error: any) => {
-      console.error('Ошибка загрузки анализа повторных покупок:', error);
+      return response.data as any;
     },
   });
 
   // Получаем воронку продаж
-  const { data: salesFunnel, isError: funnelError } = useQuery({
+  const { data: salesFunnel } = useQuery({
     queryKey: ['sales-funnel'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/customers/funnel');
-      return response.data;
-    },
-    onError: (error: any) => {
-      console.error('Ошибка загрузки воронки продаж:', error);
+      return response.data as any;
     },
   });
 
@@ -182,7 +173,7 @@ export const CustomersPage = () => {
                 <h2 className={styles.cardTitle}>Клиенты сегмента</h2>
                 <Table
                   columns={memberColumns}
-                  data={segmentMembers || []}
+                  data={Array.isArray(segmentMembers) ? segmentMembers : []}
                   loading={membersLoading}
                   emptyMessage="Клиенты не найдены"
                 />
@@ -200,14 +191,14 @@ export const CustomersPage = () => {
                   <div className={styles.analysisItem}>
                     <span className={styles.analysisLabel}>Повторные клиенты:</span>
                     <span className={styles.analysisValue}>
-                      {repeatPurchaseAnalysis.repeatCustomers || 0}
+                      {(repeatPurchaseAnalysis as any).repeatCustomers || 0}
                     </span>
                   </div>
                   <div className={styles.analysisItem}>
                     <span className={styles.analysisLabel}>Процент повторных:</span>
                     <span className={styles.analysisValue}>
-                      {((repeatPurchaseAnalysis.repeatCustomers || 0) /
-                        (repeatPurchaseAnalysis.totalCustomers || 1) *
+                      {(((repeatPurchaseAnalysis as any).repeatCustomers || 0) /
+                        ((repeatPurchaseAnalysis as any).totalCustomers || 1) *
                         100).toFixed(1)}%
                     </span>
                   </div>
@@ -219,7 +210,7 @@ export const CustomersPage = () => {
               <Card className={styles.funnelCard}>
                 <h3 className={styles.sidebarTitle}>Воронка продаж</h3>
                 <div className={styles.funnelContent}>
-                  {salesFunnel.stages?.map((stage: any, index: number) => (
+                  {((salesFunnel as any).stages || []).map((stage: any, index: number) => (
                     <div key={index} className={styles.funnelStage}>
                       <div className={styles.funnelStageName}>{stage.name}</div>
                       <div className={styles.funnelStageValue}>{stage.value || 0}</div>

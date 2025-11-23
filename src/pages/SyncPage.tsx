@@ -22,34 +22,28 @@ export const SyncPage = () => {
   });
 
   // Получаем задачи синхронизации для выбранного аккаунта
-  const { data: syncJobs, isLoading: jobsLoading, isError: jobsError } = useQuery({
+  const { data: syncJobs, isLoading: jobsLoading } = useQuery({
     queryKey: ['sync-jobs', selectedAccountId],
     queryFn: async () => {
       if (!selectedAccountId) return [];
       const response = await apiClient.instance.get(`/sync/accounts/${selectedAccountId}/jobs`, {
         params: { limit: 50 },
       });
-      return response.data;
+      return response.data as any[];
     },
     enabled: !!selectedAccountId,
     refetchInterval: 5000, // Обновляем каждые 5 секунд для активных задач
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки задач синхронизации');
-    },
   });
 
   // Получаем статистику синхронизации
-  const { data: syncStatistics, isError: statisticsError } = useQuery({
+  const { data: syncStatistics } = useQuery({
     queryKey: ['sync-statistics', selectedAccountId],
     queryFn: async () => {
       if (!selectedAccountId) return null;
       const response = await apiClient.instance.get(`/sync/accounts/${selectedAccountId}/statistics`);
-      return response.data;
+      return response.data as any;
     },
     enabled: !!selectedAccountId,
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки статистики синхронизации');
-    },
   });
 
   // Мутация для запуска синхронизации
@@ -242,33 +236,33 @@ export const SyncPage = () => {
               <div className={styles.statItem}>
                 <span className={styles.statLabel}>Последняя синхронизация:</span>
                 <span className={styles.statValue}>
-                  {syncStatistics.lastSyncAt
-                    ? new Date(syncStatistics.lastSyncAt).toLocaleString('ru-RU')
+                  {(syncStatistics as any)?.lastSyncAt
+                    ? new Date((syncStatistics as any).lastSyncAt).toLocaleString('ru-RU')
                     : 'Никогда'}
                 </span>
               </div>
               <div className={styles.statItem}>
                 <span className={styles.statLabel}>Статус:</span>
                 <span className={styles.statValue}>
-                  {syncStatistics.lastSyncStatus || 'Неизвестно'}
+                  {(syncStatistics as any)?.lastSyncStatus || 'Неизвестно'}
                 </span>
               </div>
               <div className={styles.statItem}>
                 <span className={styles.statLabel}>Всего задач:</span>
                 <span className={styles.statValue}>
-                  {syncStatistics.totalJobs || 0}
+                  {(syncStatistics as any)?.totalJobs || 0}
                 </span>
               </div>
               <div className={styles.statItem}>
                 <span className={styles.statLabel}>Успешных:</span>
                 <span className={styles.statValue}>
-                  {syncStatistics.successfulJobs || 0}
+                  {(syncStatistics as any)?.successfulJobs || 0}
                 </span>
               </div>
               <div className={styles.statItem}>
                 <span className={styles.statLabel}>Неудачных:</span>
                 <span className={styles.statValue}>
-                  {syncStatistics.failedJobs || 0}
+                  {(syncStatistics as any)?.failedJobs || 0}
                 </span>
               </div>
             </div>
@@ -280,7 +274,7 @@ export const SyncPage = () => {
             <h3 className={styles.jobsTitle}>История синхронизаций</h3>
             <Table
               columns={columns}
-              data={syncJobs || []}
+              data={Array.isArray(syncJobs) ? syncJobs : []}
               loading={jobsLoading}
               emptyMessage="Нет задач синхронизации"
             />

@@ -6,53 +6,45 @@ import { Button } from '../components/Form';
 import { LineChart } from '../components/Chart';
 import { Modal } from '../components/Modal';
 import { apiClient } from '../services/api.client';
+import { toast } from '../utils/toast';
 import styles from './CompetitorsPage.module.scss';
 
 export const CompetitorsPage = () => {
   const [selectedCompetitor, setSelectedCompetitor] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: competitors, isLoading, isError: competitorsError } = useQuery({
+  const { data: competitors, isLoading } = useQuery({
     queryKey: ['competitors'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/competitors');
-      return response.data;
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки списка конкурентов');
+      return response.data as any[];
     },
   });
 
   // Получаем аналитику по конкурентам вместо сравнения цен (которое требует productId)
-  const { data: competitorAnalytics, isError: analyticsError } = useQuery({
+  const { data: competitorAnalytics } = useQuery({
     queryKey: ['competitor-analytics', selectedCompetitor?.id],
     queryFn: async () => {
       if (!selectedCompetitor) return null;
       const response = await apiClient.instance.get('/competitors/analytics', {
         params: { competitorId: selectedCompetitor.id },
       });
-      return response.data;
+      return response.data as any;
     },
     enabled: !!selectedCompetitor,
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки аналитики конкурента');
-    },
   });
 
   // Получаем отслеживаемые товары конкурента
-  const { data: competitorProducts, isError: productsError } = useQuery({
+  const { data: competitorProducts } = useQuery({
     queryKey: ['competitor-products', selectedCompetitor?.id],
     queryFn: async () => {
       if (!selectedCompetitor) return null;
       const response = await apiClient.instance.get(
         `/competitors/${selectedCompetitor.id}/products`,
       );
-      return response.data;
+      return response.data as any[];
     },
     enabled: !!selectedCompetitor,
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки товаров конкурента');
-    },
   });
 
   const columns = [
@@ -93,13 +85,13 @@ export const CompetitorsPage = () => {
   ];
 
   // Формируем данные для графика на основе аналитики
-  const priceChartData = competitorAnalytics?.priceTrend
+  const priceChartData = competitorAnalytics && (competitorAnalytics as any).priceTrend
     ? {
-        labels: competitorAnalytics.priceTrend.map((item: any) => item.date) || [],
+        labels: ((competitorAnalytics as any).priceTrend || []).map((item: any) => item.date),
         datasets: [
           {
             label: 'Средняя цена конкурента',
-            data: competitorAnalytics.priceTrend.map((item: any) => item.avgPrice) || [],
+            data: ((competitorAnalytics as any).priceTrend || []).map((item: any) => item.avgPrice),
             borderColor: 'var(--color-error)',
             backgroundColor: 'rgba(239, 68, 68, 0.1)',
             fill: true,
@@ -116,7 +108,7 @@ export const CompetitorsPage = () => {
         <Card title="Список конкурентов">
         <Table
           columns={columns}
-          data={competitors || []}
+          data={Array.isArray(competitors) ? competitors : []}
           loading={isLoading}
           emptyMessage="Конкуренты не найдены"
         />
@@ -148,7 +140,7 @@ export const CompetitorsPage = () => {
               </div>
             </div>
 
-            {competitorProducts && competitorProducts.length > 0 && (
+            {competitorProducts && Array.isArray(competitorProducts) && competitorProducts.length > 0 && (
               <div className={styles.products}>
                 <h3>Отслеживаемые товары ({competitorProducts.length})</h3>
                 <Table
@@ -177,13 +169,13 @@ export const CompetitorsPage = () => {
                   <div className={styles.analyticsItem}>
                     <span className={styles.analyticsLabel}>Средняя цена:</span>
                     <span className={styles.analyticsValue}>
-                      {competitorAnalytics.avgPrice?.toLocaleString('ru-RU') || '-'} ₽
+                      {(competitorAnalytics as any)?.avgPrice?.toLocaleString('ru-RU') || '-'} ₽
                     </span>
                   </div>
                   <div className={styles.analyticsItem}>
                     <span className={styles.analyticsLabel}>Товаров отслеживается:</span>
                     <span className={styles.analyticsValue}>
-                      {competitorAnalytics.productsCount || 0}
+                      {(competitorAnalytics as any)?.productsCount || 0}
                     </span>
                   </div>
                 </div>

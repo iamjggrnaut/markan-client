@@ -11,19 +11,9 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
-      onError: (error: any) => {
-        // Глобальная обработка ошибок для всех queries
-        // Логируем в консоль для отладки
-        console.error('Query error:', error);
-        // Можно добавить отправку на сервер для мониторинга
-      },
     },
     mutations: {
-      onError: (error: any) => {
-        // Глобальная обработка ошибок для всех mutations
-        // Если нет локального onError, логируем здесь
-        console.error('Mutation error:', error);
-      },
+      retry: 1,
     },
   },
 });

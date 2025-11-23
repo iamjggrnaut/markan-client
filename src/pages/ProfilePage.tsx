@@ -13,23 +13,20 @@ export const ProfilePage = () => {
   const { user, login } = useAuthStore();
   const [success, setSuccess] = useState('');
 
-  const { data: profile, isLoading, isError: profileError } = useQuery({
+  const { data: profile, isLoading } = useQuery({
     queryKey: ['user-profile'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/users/me');
-      return response.data;
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки профиля');
+      return response.data as any;
     },
   });
 
   const { values, errors, handleChange, handleBlur, handleSubmit, setValue } =
     useForm(
       {
-        firstName: profile?.firstName || '',
-        lastName: profile?.lastName || '',
-        email: profile?.email || user?.email || '',
+        firstName: (profile as any)?.firstName || '',
+        lastName: (profile as any)?.lastName || '',
+        email: (profile as any)?.email || user?.email || '',
       },
       {
         firstName: { maxLength: 50 },
@@ -42,10 +39,10 @@ export const ProfilePage = () => {
     );
 
   // Обновляем значения формы при загрузке профиля
-  if (profile && !values.firstName && profile.firstName) {
-    setValue('firstName', profile.firstName);
-    setValue('lastName', profile.lastName || '');
-    setValue('email', profile.email);
+  if (profile && !values.firstName && (profile as any).firstName) {
+    setValue('firstName', (profile as any).firstName);
+    setValue('lastName', (profile as any).lastName || '');
+    setValue('email', (profile as any).email);
   }
 
   const updateMutation = useMutation({

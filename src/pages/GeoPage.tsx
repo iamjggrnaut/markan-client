@@ -38,7 +38,7 @@ export const GeoPage = () => {
   const dateRange = getDateRange();
 
   // Получаем региональную статистику
-  const { data: regionalStats, isLoading: statsLoading, isError: statsError } = useQuery({
+  const { data: regionalStats, isLoading: statsLoading } = useQuery({
     queryKey: ['geo-regions', period, dateRange.startDate, dateRange.endDate],
     queryFn: async () => {
       const response = await apiClient.instance.get('/geo/regions', {
@@ -47,15 +47,12 @@ export const GeoPage = () => {
           endDate: dateRange.endDate,
         },
       });
-      return response.data;
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки региональной статистики');
+      return response.data as any;
     },
   });
 
   // Получаем сравнение регионов (для таблиц)
-  const { data: regionalComparison, isLoading: comparisonLoading, isError: comparisonError } = useQuery({
+  const { data: regionalComparison, isLoading: comparisonLoading } = useQuery({
     queryKey: ['geo-regions-comparison', period, dateRange.startDate, dateRange.endDate],
     queryFn: async () => {
       const response = await apiClient.instance.get('/geo/regions/comparison', {
@@ -65,26 +62,23 @@ export const GeoPage = () => {
           sortBy: 'revenue',
         },
       });
-      return response.data;
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки сравнения регионов');
+      return response.data as any[];
     },
   });
 
   // Формируем данные для таблиц из API
-  const ordersData = regionalComparison?.slice(0, 5).map((item: any) => ({
+  const ordersData = regionalComparison && Array.isArray(regionalComparison) ? regionalComparison.slice(0, 5).map((item: any) => ({
     region: item.region || 'Неизвестный регион',
     quantity: `${item.ordersCount || 0} шт.`,
     amount: `${(item.totalRevenue || 0).toLocaleString('ru-RU')} ₽`,
-    share: `${((item.totalRevenue || 0) / (regionalStats?.totalRevenue || 1) * 100).toFixed(0)}%`,
+    share: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(0)}%`,
   })) || [];
 
-  const salesData = regionalComparison?.slice(0, 5).map((item: any) => ({
+  const salesData = regionalComparison && Array.isArray(regionalComparison) ? regionalComparison.slice(0, 5).map((item: any) => ({
     region: item.region || 'Неизвестный регион',
-    total: `${item.ordersCount || 0} шт. ${((item.totalRevenue || 0) / (regionalStats?.totalRevenue || 1) * 100).toFixed(2)}%`,
-    totalShare: `${((item.totalRevenue || 0) / (regionalStats?.totalRevenue || 1) * 100).toFixed(0)}%`,
-    byWarehouse: `${((item.totalRevenue || 0) / (regionalStats?.totalRevenue || 1) * 100).toFixed(0)}%`,
+    total: `${item.ordersCount || 0} шт. ${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(2)}%`,
+    totalShare: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(0)}%`,
+    byWarehouse: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(0)}%`,
   })) || [];
 
   const ordersColumns = [

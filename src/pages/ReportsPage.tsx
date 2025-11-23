@@ -15,14 +15,11 @@ export const ReportsPage = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const { data: reports, isLoading, isError: reportsError } = useQuery({
+  const { data: reports, isLoading } = useQuery({
     queryKey: ['reports'],
     queryFn: async () => {
       const response = await apiClient.instance.get('/reports');
-      return response.data;
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки отчетов');
+      return response.data as any[];
     },
   });
 
@@ -133,7 +130,7 @@ export const ReportsPage = () => {
       <Card title="Список отчетов">
         <Table
           columns={columns}
-          data={reports || []}
+          data={Array.isArray(reports) ? reports : []}
           loading={isLoading}
           emptyMessage="Отчеты не найдены"
         />

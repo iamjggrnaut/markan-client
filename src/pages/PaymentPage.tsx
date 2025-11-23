@@ -5,6 +5,7 @@ import { FaCheckCircle, FaTimesCircle, FaClock } from 'react-icons/fa';
 import { Card } from '../components/Card';
 import { Button } from '../components/Form';
 import { apiClient } from '../services/api.client';
+import { toast } from '../utils/toast';
 import styles from './PaymentPage.module.scss';
 
 export const PaymentPage = () => {

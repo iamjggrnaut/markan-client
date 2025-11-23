@@ -33,17 +33,14 @@ export const OrganizationsPage = () => {
   });
 
   // Получаем членов выбранной организации
-  const { data: members, isLoading: membersLoading, isError: membersError } = useQuery({
+  const { data: members, isLoading: membersLoading } = useQuery({
     queryKey: ['organization-members', selectedOrganization],
     queryFn: async () => {
       if (!selectedOrganization) return [];
       const response = await apiClient.instance.get(`/organizations/${selectedOrganization}/members`);
-      return response.data;
+      return response.data as any[];
     },
     enabled: !!selectedOrganization,
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Ошибка загрузки членов организации');
-    },
   });
 
   // Мутация для создания организации
@@ -202,7 +199,7 @@ export const OrganizationsPage = () => {
                 </div>
                 <Table
                   columns={memberColumns}
-                  data={members || []}
+                  data={Array.isArray(members) ? members : []}
                   loading={membersLoading}
                   emptyMessage="Члены не найдены"
                 />
