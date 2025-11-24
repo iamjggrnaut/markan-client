@@ -5,27 +5,20 @@ import { Filters } from '../components/Filters';
 import { Select } from '../components/Form';
 import { apiClient } from '../services/api.client';
 import { FaBolt, FaChartLine, FaBox, FaExclamationTriangle } from 'react-icons/fa';
+import { PERIOD_DAYS, DEFAULT_PERIOD } from '../constants/date.constants';
 import styles from './OptimizationPage.module.scss';
 
 export const OptimizationPage = () => {
-  const [period, setPeriod] = useState('month');
+  const [period, setPeriod] = useState<string>(DEFAULT_PERIOD);
   const [source, setSource] = useState('marketplace');
   const [marketplace, setMarketplace] = useState<string>('');
-
-  // Маппинг периодов для вычисления дат
-  const periodDaysMap: Record<string, number> = {
-    week: 7,
-    month: 30,
-    quarter: 90,
-    year: 365,
-  };
 
   // Вычисляем даты на основе периода
   const getDateRange = () => {
     const end = new Date();
     let start = new Date();
 
-    const days = periodDaysMap[period] || 30;
+    const days = PERIOD_DAYS[period as keyof typeof PERIOD_DAYS] || PERIOD_DAYS[DEFAULT_PERIOD];
     start.setDate(end.getDate() - days);
 
     return {

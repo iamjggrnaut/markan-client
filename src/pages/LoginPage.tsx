@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { apiClient } from '../services/api.client';
+import { ROUTES } from '../constants/routes.constants';
 import styles from './LoginPage.module.scss';
 
 export const LoginPage = () => {
@@ -29,7 +30,7 @@ export const LoginPage = () => {
         response.data.refresh_token,
       );
 
-      navigate('/dashboard');
+      navigate(ROUTES.DASHBOARD);
     } catch (err: any) {
       setError(
         err.response?.data?.message || 'Ошибка входа. Проверьте данные.',

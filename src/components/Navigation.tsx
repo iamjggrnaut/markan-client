@@ -2,13 +2,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   // FaChartBar, FaBox, FaChartLine, FaMapMarkedAlt, FaFileAlt, 
   FaBolt } from 'react-icons/fa';
+import { ROUTES } from '../constants/routes.constants';
 import styles from './Navigation.module.scss';
 
 export const Navigation = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/dashboard', label: 'Сводка продаж' },
+    { path: ROUTES.DASHBOARD, label: 'Сводка продаж' },
     { path: '/products', label: 'Расчет поставок' },
     { path: '/geo', label: 'География заказов' },
     { path: '/analytics', label: 'Товарная аналитика' },
@@ -22,7 +23,7 @@ export const Navigation = () => {
 
   const getActivePath = () => {
     const path = location.pathname;
-    if (path === '/dashboard' || path === '/') return '/dashboard';
+    if (path === ROUTES.DASHBOARD || path === ROUTES.ROOT) return ROUTES.DASHBOARD;
     if (path.startsWith('/geo')) return '/geo';
     if (path.startsWith('/analytics')) return '/analytics';
     if (path.startsWith('/products')) return '/products';

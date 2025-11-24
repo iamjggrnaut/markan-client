@@ -5,27 +5,21 @@ import { Card } from '../components/Card';
 import { Filters } from '../components/Filters';
 import { Table } from '../components/Table';
 import { apiClient } from '../services/api.client';
+import { PERIOD_DAYS, DEFAULT_PERIOD } from '../constants/date.constants';
+import { CALCULATION_CONSTANTS } from '../constants/calculation.constants';
 import styles from './GeoPage.module.scss';
 
 export const GeoPage = () => {
-  const [period, setPeriod] = useState('week');
+  const [period, setPeriod] = useState<string>(DEFAULT_PERIOD);
   const [source, setSource] = useState('marketplace');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
-
-  // Маппинг периодов для вычисления дат
-  const periodDaysMap: Record<string, number> = {
-    week: 7,
-    month: 30,
-    quarter: 90,
-    year: 365,
-  };
 
   // Вычисляем даты на основе периода
   const getDateRange = () => {
     const end = new Date();
     let start = new Date();
 
-    const days = periodDaysMap[period] || 30;
+    const days = PERIOD_DAYS[period as keyof typeof PERIOD_DAYS] || PERIOD_DAYS[DEFAULT_PERIOD];
     start.setDate(end.getDate() - days);
 
     return {
@@ -71,16 +65,16 @@ export const GeoPage = () => {
         region: item.region || 'Неизвестный регион',
         quantity: `${item.ordersCount || 0} шт.`,
         amount: `${(item.totalRevenue || 0).toLocaleString('ru-RU')} ₽`,
-        share: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(0)}%`,
+        share: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER).toFixed(0)}%`,
       }))
     : [];
 
   const salesData = regionalComparison && Array.isArray(regionalComparison)
     ? regionalComparison.slice(0, 5).map((item: any) => ({
         region: item.region || 'Неизвестный регион',
-        total: `${item.ordersCount || 0} шт. ${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(2)}%`,
-        totalShare: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(0)}%`,
-        byWarehouse: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * 100).toFixed(0)}%`,
+        total: `${item.ordersCount || 0} шт. ${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER).toFixed(2)}%`,
+        totalShare: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER).toFixed(0)}%`,
+        byWarehouse: `${((item.totalRevenue || 0) / ((regionalStats as any)?.totalRevenue || 1) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER).toFixed(0)}%`,
       }))
     : [];
 

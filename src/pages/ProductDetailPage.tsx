@@ -7,6 +7,7 @@ import { LineChart } from '../components/Chart';
 import { apiClient } from '../services/api.client';
 import { FaArrowLeft, FaChartLine, FaBox, FaDollarSign, FaExclamationTriangle } from 'react-icons/fa';
 import { toast } from '../utils/toast';
+import { API_CONSTANTS } from '../constants/api.constants';
 import styles from './ProductDetailPage.module.scss';
 
 export const ProductDetailPage = () => {
@@ -67,7 +68,7 @@ export const ProductDetailPage = () => {
     queryKey: ['product-stock-history', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/stock-history`, {
-        params: { limit: 100 },
+        params: { limit: API_CONSTANTS.PRODUCTS_PAGE_SIZE },
       });
       return response.data as any[];
     },

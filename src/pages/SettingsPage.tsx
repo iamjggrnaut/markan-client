@@ -8,6 +8,7 @@ import { apiClient } from '../services/api.client';
 import { pushNotificationService } from '../utils/push-notifications';
 import { toast } from '../utils/toast';
 import { usePWA } from '../hooks/usePWA';
+import { ROUTES } from '../constants/routes.constants';
 import styles from './SettingsPage.module.scss';
 
 export const SettingsPage = () => {
@@ -355,7 +356,7 @@ export const SettingsPage = () => {
         {activeTab === 'profile' && (
           <Card title="Настройки профиля">
             <p>Перейдите в раздел "Профиль" для изменения личных данных.</p>
-            <Button variant="secondary" onClick={() => window.location.href = '/profile'}>
+            <Button variant="secondary" onClick={() => window.location.href = ROUTES.PROFILE}>
               Открыть профиль
             </Button>
           </Card>
@@ -916,7 +917,7 @@ export const SettingsPage = () => {
                             onClick={() => {
                               if (plan.type === (userPlan as any)?.type) return;
                               // Перенаправляем на страницу оплаты
-                              window.location.href = `/payment?plan=${plan.type}&period=${selectedBillingPeriod}`;
+                              window.location.href = `${ROUTES.PAYMENT}?plan=${plan.type}&period=${selectedBillingPeriod}`;
                             }}
                             disabled={plan.type === (userPlan as any)?.type}
                             style={{ width: '100%' }}

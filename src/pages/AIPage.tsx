@@ -6,6 +6,8 @@ import { Button, Select } from '../components/Form';
 import { apiClient } from '../services/api.client';
 import { FaBrain, FaCheckCircle, FaExclamationTriangle, FaInfoCircle } from 'react-icons/fa';
 import { toast } from '../utils/toast';
+import { API_CONSTANTS } from '../constants/api.constants';
+import { CALCULATION_CONSTANTS } from '../constants/calculation.constants';
 import styles from './AIPage.module.scss';
 
 export const AIPage = () => {
@@ -19,7 +21,7 @@ export const AIPage = () => {
       const response = await apiClient.instance.get('/ai/recommendations', {
         params: {
           ...(selectedType && { type: selectedType }),
-          limit: 100,
+          limit: API_CONSTANTS.AI_RECOMMENDATIONS_LIMIT,
         },
       });
       return response.data as any[];
@@ -30,7 +32,7 @@ export const AIPage = () => {
   const { data: products } = useQuery({
     queryKey: ['products-list'],
     queryFn: async () => {
-      const response = await apiClient.instance.get('/products', { params: { limit: 100 } });
+      const response = await apiClient.instance.get('/products', { params: { limit: API_CONSTANTS.PRODUCTS_PAGE_SIZE } });
       return Array.isArray(response.data) ? response.data : (response.data?.products || []) as any[];
     },
   });
@@ -238,7 +240,7 @@ export const AIPage = () => {
                 {(demandForecast as any).confidence && (
                   <div className={styles.forecastMetric}>
                     <span className={styles.forecastLabel}>Уверенность прогноза:</span>
-                    <span className={styles.forecastValue}>{((demandForecast as any).confidence * 100).toFixed(1)}%</span>
+                    <span className={styles.forecastValue}>{((demandForecast as any).confidence * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER).toFixed(1)}%</span>
                   </div>
                 )}
               </div>

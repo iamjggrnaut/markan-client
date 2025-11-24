@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { useAuthStore } from '../store/auth.store';
+import { ROUTES } from '../constants/routes.constants';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -50,7 +51,7 @@ class ApiClient {
           // Если нет refresh token, просто выходим
           if (!refreshToken) {
             logout();
-            window.location.href = '/login';
+            window.location.href = ROUTES.LOGIN;
             return Promise.reject(error);
           }
 
@@ -76,7 +77,7 @@ class ApiClient {
           } catch (refreshError) {
             // Если refresh не удался, выходим
             logout();
-            window.location.href = '/login';
+            window.location.href = ROUTES.LOGIN;
             return Promise.reject(refreshError);
           }
         }

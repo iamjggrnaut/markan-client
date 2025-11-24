@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { toast } from './utils/toast';
+import { API_CONSTANTS } from './constants/api.constants';
 import './styles/variables.scss';
 import './styles/base.scss';
 
@@ -14,10 +15,10 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: 1,
+      retry: API_CONSTANTS.DEFAULT_RETRY,
     },
     mutations: {
-      retry: 1,
+      retry: API_CONSTANTS.DEFAULT_RETRY,
     },
   },
 });

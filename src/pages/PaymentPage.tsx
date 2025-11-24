@@ -6,6 +6,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Form';
 import { apiClient } from '../services/api.client';
 import { toast } from '../utils/toast';
+import { ROUTES } from '../constants/routes.constants';
 import styles from './PaymentPage.module.scss';
 
 export const PaymentPage = () => {
@@ -171,7 +172,7 @@ export const PaymentPage = () => {
                   Подписка действует до:{' '}
                   {new Date(payment.subscriptionEndDate).toLocaleDateString('ru-RU')}
                 </p>
-                <Button onClick={() => navigate('/dashboard')} variant="primary">
+                <Button onClick={() => navigate(ROUTES.DASHBOARD)} variant="primary">
                   Перейти в сервис
                 </Button>
               </div>

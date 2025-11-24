@@ -6,6 +6,7 @@ import { Button, Select } from '../components/Form';
 import { apiClient } from '../services/api.client';
 import { toast } from '../utils/toast';
 import { FaSync, FaCheckCircle, FaTimesCircle, FaClock, FaRedo } from 'react-icons/fa';
+import { API_CONSTANTS } from '../constants/api.constants';
 import styles from './SyncPage.module.scss';
 
 export const SyncPage = () => {
@@ -27,12 +28,12 @@ export const SyncPage = () => {
     queryFn: async () => {
       if (!selectedAccountId) return [];
       const response = await apiClient.instance.get(`/sync/accounts/${selectedAccountId}/jobs`, {
-        params: { limit: 50 },
+        params: { limit: API_CONSTANTS.SYNC_JOBS_LIMIT },
       });
       return response.data as any[];
     },
     enabled: !!selectedAccountId,
-    refetchInterval: 5000, // Обновляем каждые 5 секунд для активных задач
+    refetchInterval: API_CONSTANTS.SYNC_JOBS_REFRESH_INTERVAL,
   });
 
   // Получаем статистику синхронизации

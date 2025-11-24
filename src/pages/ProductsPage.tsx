@@ -6,6 +6,7 @@ import { Card } from '../components/Card';
 import { Button, Input } from '../components/Form';
 import { Filters } from '../components/Filters';
 import { apiClient } from '../services/api.client';
+import { API_CONSTANTS } from '../constants/api.constants';
 import styles from './ProductsPage.module.scss';
 
 export const ProductsPage = () => {
@@ -43,7 +44,7 @@ export const ProductsPage = () => {
       const response = await apiClient.instance.get('/products/reorder-recommendations');
       return response.data as any;
     },
-    retry: false, // Не повторять запрос при ошибке
+    retry: API_CONSTANTS.NO_RETRY,
   });
 
   const columns = [

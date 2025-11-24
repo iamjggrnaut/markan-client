@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../services/api.client';
+import { API_CONSTANTS } from '../constants/api.constants';
 import styles from './AdminPage.module.scss';
 
 interface AdminStats {
@@ -48,7 +49,7 @@ export const AdminPage: React.FC = () => {
       const response = await apiClient.instance.get('/admin/stats');
       return response.data;
     },
-    refetchInterval: 30000, // Обновление каждые 30 секунд
+    refetchInterval: API_CONSTANTS.ADMIN_REFRESH_INTERVAL,
   });
 
   // Получение списка пользователей
