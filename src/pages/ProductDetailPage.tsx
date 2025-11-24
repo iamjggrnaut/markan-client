@@ -26,7 +26,7 @@ export const ProductDetailPage = () => {
   });
 
   // Получаем прибыльность товара
-  const { data: profitability, error: profitabilityError } = useQuery({
+  const { data: profitability } = useQuery({
     queryKey: ['product-profitability', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/profitability`);
@@ -37,7 +37,7 @@ export const ProductDetailPage = () => {
   });
 
   // Получаем прогноз остатков
-  const { data: stockForecast, error: stockForecastError } = useQuery({
+  const { data: stockForecast } = useQuery({
     queryKey: ['product-stock-forecast', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/stock-forecast`);
@@ -48,7 +48,7 @@ export const ProductDetailPage = () => {
   });
 
   // Получаем оборачиваемость запасов
-  const { data: turnoverRate, error: turnoverRateError } = useQuery({
+  const { data: turnoverRate } = useQuery({
     queryKey: ['product-turnover-rate', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/turnover-rate`);
@@ -68,7 +68,7 @@ export const ProductDetailPage = () => {
   });
 
   // Получаем историю остатков
-  const { data: stockHistory, isLoading: historyLoading, error: stockHistoryError } = useQuery({
+  const { data: stockHistory, isLoading: historyLoading } = useQuery({
     queryKey: ['product-stock-history', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/stock-history`, {
