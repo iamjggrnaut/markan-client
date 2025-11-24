@@ -602,28 +602,28 @@ export const DashboardPage = () => {
                 },
                 { 
                   label: 'Налоги', 
-                  valueRub: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.DEFAULT_TAX_RATE,
+                  valueRub: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.TAX_RATE,
                   valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.revenue?.changePercent || 0,
                   canSwitch: true
                 },
                 { 
                   label: 'Комиссии', 
-                  valueRub: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.DEFAULT_MARKETPLACE_COMMISSION,
+                  valueRub: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.MARKETPLACE_COMMISSION,
                   valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.revenue?.changePercent || 0,
                   canSwitch: true
                 },
                 { 
                   label: 'Логистика', 
-                  valueRub: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.DEFAULT_LOGISTICS_COST,
+                  valueRub: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.LOGISTICS_RATE,
                   valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.revenue?.changePercent || 0,
                   canSwitch: true
                 },
                 { 
                   label: 'Реклама', 
-                  valueRub: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.DEFAULT_ADVERTISING_COST,
+                  valueRub: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.ADVERTISING_RATE,
                   valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.revenue?.changePercent || 0,
                   canSwitch: true
