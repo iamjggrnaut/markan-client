@@ -283,19 +283,19 @@ export const DashboardPage = () => {
             <div className={styles.kpiContent}>
               <h3 className={styles.kpiTitle}>Заказы</h3>
               <div className={styles.kpiMainValue}>
-                {(stats as any)?.totalRevenue?.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0,00'} ₽
+                {((stats as any)?.totalSales || 0).toLocaleString('ru-RU')} шт.
               </div>
               <div className={styles.kpiSecondaryValue}>
-                {(stats as any)?.totalSales?.toLocaleString('ru-RU') || 0} шт.
+                {(stats as any)?.totalRevenue?.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0,00'} ₽
               </div>
-              {(kpi as any)?.revenue?.changePercent && (
+              {(kpi as any)?.orders?.changePercent !== undefined && (
                 <div className={styles.kpiChange}>
                   <FaArrowUp className={styles.kpiChangeIcon} />
-                  <span>{Math.abs((kpi as any).revenue.changePercent).toFixed(0)}%</span>
+                  <span>{Math.abs((kpi as any).orders.changePercent).toFixed(0)}%</span>
                 </div>
               )}
               <div className={styles.kpiDaily}>
-                {(((stats as any)?.totalRevenue || 0) / CALCULATION_CONSTANTS.DAYS_IN_WEEK).toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ₽ ({Math.floor(((stats as any)?.totalSales || 0) / CALCULATION_CONSTANTS.DAYS_IN_WEEK)} шт.) в день
+                {Math.floor(((stats as any)?.totalSales || 0) / CALCULATION_CONSTANTS.DAYS_IN_WEEK)} шт. ({(((stats as any)?.totalRevenue || 0) / CALCULATION_CONSTANTS.DAYS_IN_WEEK).toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ₽) в день
               </div>
             </div>
           </Card>

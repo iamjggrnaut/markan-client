@@ -324,15 +324,78 @@ export const AnalyticsPage = () => {
                   </span>
                 </div>
               )}
-              {(adAnalytics as any).roi !== undefined && (
+              {(adAnalytics as any).totalROI !== undefined && (
                 <div className={styles.adStatItem}>
                   <span className={styles.adStatLabel}>ROI:</span>
                   <span className={styles.adStatValue}>
-                    {((adAnalytics as any).roi).toFixed(2)}%
+                    {((adAnalytics as any).totalROI).toFixed(2)}%
                   </span>
                 </div>
               )}
             </div>
+
+            {/* Группировка по каналам */}
+            {(adAnalytics as any).byChannel && Array.isArray((adAnalytics as any).byChannel) && (adAnalytics as any).byChannel.length > 0 && (
+              <div className={styles.adChannels}>
+                <h4 className={styles.adChannelsTitle}>По маркетплейсам:</h4>
+                <div className={styles.adChannelsList}>
+                  {((adAnalytics as any).byChannel || []).map((channel: any, index: number) => (
+                    <div key={index} className={styles.adChannelItem}>
+                      <span className={styles.adChannelName}>{channel.channel || 'Неизвестно'}</span>
+                      <span className={styles.adChannelSpent}>
+                        Потрачено: {((channel.spent || 0)).toLocaleString('ru-RU')} ₽
+                      </span>
+                      <span className={styles.adChannelRevenue}>
+                        Выручка: {((channel.revenue || 0)).toLocaleString('ru-RU')} ₽
+                      </span>
+                      <span className={styles.adChannelRoi}>
+                        ROI: {((channel.roi || 0)).toFixed(2)}%
+                      </span>
+                      <span className={styles.adChannelCampaigns}>
+                        Кампаний: {channel.campaigns || 0}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Список кампаний */}
+            {(adAnalytics as any).campaigns && Array.isArray((adAnalytics as any).campaigns) && (adAnalytics as any).campaigns.length > 0 && (
+              <div className={styles.adCampaigns}>
+                <h4 className={styles.adCampaignsTitle}>Рекламные кампании:</h4>
+                <div className={styles.adCampaignsList}>
+                  {((adAnalytics as any).campaigns || []).slice(0, 10).map((campaign: any, index: number) => (
+                    <div key={campaign.id || index} className={styles.adCampaignItem}>
+                      <div className={styles.adCampaignHeader}>
+                        <span className={styles.adCampaignName}>{campaign.name || 'Без названия'}</span>
+                        <span className={styles.adCampaignMarketplace}>{campaign.marketplaceType || '-'}</span>
+                        <span className={styles.adCampaignStatus}>{campaign.status || '-'}</span>
+                      </div>
+                      <div className={styles.adCampaignStats}>
+                        <span>Потрачено: {((campaign.spent || 0)).toLocaleString('ru-RU')} ₽</span>
+                        <span>Выручка: {((campaign.revenue || 0)).toLocaleString('ru-RU')} ₽</span>
+                        <span>ROI: {((campaign.roi || 0)).toFixed(2)}%</span>
+                        {campaign.impressions !== undefined && (
+                          <span>Показы: {((campaign.impressions || 0)).toLocaleString('ru-RU')}</span>
+                        )}
+                        {campaign.clicks !== undefined && (
+                          <span>Клики: {((campaign.clicks || 0)).toLocaleString('ru-RU')}</span>
+                        )}
+                        {campaign.conversions !== undefined && (
+                          <span>Конверсии: {((campaign.conversions || 0)).toLocaleString('ru-RU')}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {((adAnalytics as any).campaigns || []).length > 10 && (
+                    <div className={styles.adCampaignsMore}>
+                      И еще {((adAnalytics as any).campaigns || []).length - 10} кампаний...
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </Card>
         </div>
       )}

@@ -188,11 +188,38 @@ export const ProductDetailPage = () => {
                   </span>
                 </div>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Остаток:</span>
+                  <span className={styles.infoLabel}>Доступный остаток:</span>
                   <span className={styles.infoValue}>
-                    {(product as any)?.stock?.quantity || 0} шт.
+                    {(product as any)?.availableStock || 0} шт.
                   </span>
                 </div>
+                {(product as any)?.totalStock !== undefined && (product as any).totalStock !== (product as any)?.availableStock && (
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoLabel}>Общий остаток:</span>
+                    <span className={styles.infoValue}>
+                      {(product as any)?.totalStock || 0} шт.
+                    </span>
+                  </div>
+                )}
+                {(product as any)?.brand && (
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoLabel}>Бренд:</span>
+                    <span className={styles.infoValue}>{(product as any).brand}</span>
+                  </div>
+                )}
+                {(product as any)?.rating !== undefined && (
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoLabel}>Рейтинг:</span>
+                    <span className={styles.infoValue}>
+                      {(product as any).rating?.toFixed(1) || '-'} ⭐
+                      {((product as any).reviewsCount || 0) > 0 && (
+                        <span className={styles.reviewsCount}>
+                          ({(product as any).reviewsCount} отзывов)
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                )}
                 <div className={styles.infoItem}>
                   <span className={styles.infoLabel}>Продажи:</span>
                   <span className={styles.infoValue}>
@@ -216,27 +243,33 @@ export const ProductDetailPage = () => {
                 </h2>
                 <div className={styles.profitabilityGrid}>
                   <div className={styles.profitabilityItem}>
+                    <span className={styles.profitabilityLabel}>Общая выручка:</span>
+                    <span className={styles.profitabilityValue}>
+                      {((profitability as any).totalRevenue || 0).toLocaleString('ru-RU')} ₽
+                    </span>
+                  </div>
+                  <div className={styles.profitabilityItem}>
+                    <span className={styles.profitabilityLabel}>Общая себестоимость:</span>
+                    <span className={styles.profitabilityValue}>
+                      {((profitability as any).totalCost || 0).toLocaleString('ru-RU')} ₽
+                    </span>
+                  </div>
+                  <div className={styles.profitabilityItem}>
                     <span className={styles.profitabilityLabel}>Валовая прибыль:</span>
                     <span className={styles.profitabilityValue}>
-                      {((profitability as any).grossProfit || 0).toLocaleString('ru-RU')} ₽
+                      {((profitability as any).totalProfit || 0).toLocaleString('ru-RU')} ₽
                     </span>
                   </div>
                   <div className={styles.profitabilityItem}>
                     <span className={styles.profitabilityLabel}>Маржинальность:</span>
                     <span className={styles.profitabilityValue}>
-                      {((profitability as any).margin || 0).toFixed(2)}%
+                      {((profitability as any).profitMargin || 0).toFixed(2)}%
                     </span>
                   </div>
                   <div className={styles.profitabilityItem}>
-                    <span className={styles.profitabilityLabel}>ROI:</span>
+                    <span className={styles.profitabilityLabel}>Количество продаж:</span>
                     <span className={styles.profitabilityValue}>
-                      {((profitability as any).roi || 0).toFixed(2)}%
-                    </span>
-                  </div>
-                  <div className={styles.profitabilityItem}>
-                    <span className={styles.profitabilityLabel}>Себестоимость:</span>
-                    <span className={styles.profitabilityValue}>
-                      {((profitability as any).costPrice || 0).toLocaleString('ru-RU')} ₽
+                      {((profitability as any).salesCount || 0).toLocaleString('ru-RU')} шт.
                     </span>
                   </div>
                 </div>
@@ -253,9 +286,35 @@ export const ProductDetailPage = () => {
                   <div className={styles.forecastItem}>
                     <span className={styles.forecastLabel}>Дней до исчерпания:</span>
                     <span className={styles.forecastValue}>
-                      {((stockForecast as any).daysUntilOutOfStock || 'Не определено')}
+                      {(stockForecast as any).forecastDepletionDays !== null && (stockForecast as any).forecastDepletionDays !== undefined
+                        ? `${(stockForecast as any).forecastDepletionDays} дней`
+                        : (stockForecast as any).message || 'Не определено'}
                     </span>
                   </div>
+                  {(stockForecast as any).averageDailySales !== undefined && (
+                    <div className={styles.forecastItem}>
+                      <span className={styles.forecastLabel}>Средние продажи в день:</span>
+                      <span className={styles.forecastValue}>
+                        {((stockForecast as any).averageDailySales || 0).toFixed(2)} шт.
+                      </span>
+                    </div>
+                  )}
+                  {(stockForecast as any).currentStock !== undefined && (
+                    <div className={styles.forecastItem}>
+                      <span className={styles.forecastLabel}>Текущий остаток:</span>
+                      <span className={styles.forecastValue}>
+                        {((stockForecast as any).currentStock || 0)} шт.
+                      </span>
+                    </div>
+                  )}
+                  {(stockForecast as any).isCritical && (
+                    <div className={styles.forecastItem}>
+                      <span className={styles.forecastLabel}>Статус:</span>
+                      <span className={styles.forecastValue} style={{ color: 'var(--color-error)' }}>
+                        ⚠️ Критический остаток
+                      </span>
+                    </div>
+                  )}
                   <div className={styles.forecastItem}>
                     <span className={styles.forecastLabel}>Рекомендуемый заказ:</span>
                     <span className={styles.forecastValue}>
