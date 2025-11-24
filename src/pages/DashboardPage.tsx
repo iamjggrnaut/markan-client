@@ -664,43 +664,49 @@ export const DashboardPage = () => {
               <div className={styles.abcGroup}>
                 <h4 className={styles.abcGroupTitle}>Группа А</h4>
                 <div className={styles.abcGroupValue}>
-                  {(abcAnalysis as any).groupA?.revenue?.toLocaleString('ru-RU') || '259 000'} ₽
+                  {((abcAnalysis as any).groupA?.revenue || 0).toLocaleString('ru-RU')} ₽
                 </div>
                 <div className={styles.abcGroupQuantity}>
-                  {(abcAnalysis as any).groupA?.quantity || 245} шт.
+                  {((abcAnalysis as any).groupA?.quantity || 0).toLocaleString('ru-RU')} шт.
                 </div>
-                <div className={styles.abcGroupChange}>
-                  <FaArrowUp className={styles.abcChangeIcon} />
-                  <span>12%</span>
-                </div>
+                {(abcAnalysis as any).groupA?.count > 0 && (
+                  <div className={styles.abcGroupChange}>
+                    <FaArrowUp className={styles.abcChangeIcon} />
+                    <span>{((abcAnalysis as any).categoryA || 0)} товаров</span>
+                  </div>
+                )}
               </div>
               <div className={styles.abcDivider}></div>
               <div className={styles.abcGroup}>
                 <h4 className={styles.abcGroupTitle}>Группа В</h4>
                 <div className={styles.abcGroupValue}>
-                  {(abcAnalysis as any).groupB?.revenue?.toLocaleString('ru-RU') || '259 000'} ₽
+                  {((abcAnalysis as any).groupB?.revenue || 0).toLocaleString('ru-RU')} ₽
                 </div>
                 <div className={styles.abcGroupQuantity}>
-                  {(abcAnalysis as any).groupB?.quantity || 245} шт.
+                  {((abcAnalysis as any).groupB?.quantity || 0).toLocaleString('ru-RU')} шт.
                 </div>
-                <div className={styles.abcGroupChange}>
-                  <FaArrowUp className={styles.abcChangeIcon} />
-                  <span>12%</span>
-                </div>
+                {(abcAnalysis as any).groupB?.count > 0 && (
+                  <div className={styles.abcGroupChange}>
+                    <FaArrowUp className={styles.abcChangeIcon} />
+                    <span>{((abcAnalysis as any).categoryB || 0)} товаров</span>
+                  </div>
+                )}
               </div>
               <div className={styles.abcDivider}></div>
               <div className={styles.abcGroup}>
                 <h4 className={styles.abcGroupTitle}>Группа С</h4>
                 <div className={styles.abcGroupValue}>
-                  {(abcAnalysis as any).groupC?.revenue?.toLocaleString('ru-RU') || '259 000'} ₽
+                  {((abcAnalysis as any).groupC?.revenue || 0).toLocaleString('ru-RU')} ₽
                 </div>
                 <div className={styles.abcGroupQuantity}>
-                  {(abcAnalysis as any).groupC?.quantity || 245} шт.
+                  {((abcAnalysis as any).groupC?.quantity || 0).toLocaleString('ru-RU')} шт.
                 </div>
-                <div className={styles.abcGroupChange}>
-                  <FaArrowUp className={styles.abcChangeIcon} />
-                  <span>12%</span>
-                </div>
+                {(abcAnalysis as any).groupC?.count > 0 && (
+                  <div className={styles.abcGroupChange}>
+                    <FaArrowUp className={styles.abcChangeIcon} />
+                    <span>{((abcAnalysis as any).categoryC || 0)} товаров</span>
+                  </div>
+                )}
               </div>
             </div>
             <button className={styles.abcDetailsButton}>Подробнее</button>

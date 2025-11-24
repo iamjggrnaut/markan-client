@@ -15,43 +15,47 @@ export const ProductDetailPage = () => {
   const navigate = useNavigate();
 
   // Получаем информацию о товаре
-  const { data: product, isLoading: productLoading } = useQuery({
+  const { data: product, isLoading: productLoading, error: productError } = useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}`);
       return response.data as any;
     },
     enabled: !!id,
+    retry: false,
   });
 
   // Получаем прибыльность товара
-  const { data: profitability } = useQuery({
+  const { data: profitability, error: profitabilityError } = useQuery({
     queryKey: ['product-profitability', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/profitability`);
       return response.data as any;
     },
-    enabled: !!id,
+    enabled: !!id && !!product,
+    retry: false,
   });
 
   // Получаем прогноз остатков
-  const { data: stockForecast } = useQuery({
+  const { data: stockForecast, error: stockForecastError } = useQuery({
     queryKey: ['product-stock-forecast', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/stock-forecast`);
       return response.data as any;
     },
-    enabled: !!id,
+    enabled: !!id && !!product,
+    retry: false,
   });
 
   // Получаем оборачиваемость запасов
-  const { data: turnoverRate } = useQuery({
+  const { data: turnoverRate, error: turnoverRateError } = useQuery({
     queryKey: ['product-turnover-rate', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/turnover-rate`);
       return response.data as any;
     },
-    enabled: !!id,
+    enabled: !!id && !!product,
+    retry: false,
   });
 
   // Получаем список интеграций для синхронизации
@@ -64,7 +68,7 @@ export const ProductDetailPage = () => {
   });
 
   // Получаем историю остатков
-  const { data: stockHistory, isLoading: historyLoading } = useQuery({
+  const { data: stockHistory, isLoading: historyLoading, error: stockHistoryError } = useQuery({
     queryKey: ['product-stock-history', id],
     queryFn: async () => {
       const response = await apiClient.instance.get(`/products/${id}/stock-history`, {
@@ -72,7 +76,8 @@ export const ProductDetailPage = () => {
       });
       return response.data as any[];
     },
-    enabled: !!id,
+    enabled: !!id && !!product,
+    retry: false,
   });
 
   // Мутация для синхронизации остатков
@@ -101,11 +106,14 @@ export const ProductDetailPage = () => {
     );
   }
 
-  if (!product) {
+  if (productError || !product) {
+    const errorMessage = (productError as any)?.response?.data?.message || 
+                        (productError as any)?.message || 
+                        'Товар не найден';
     return (
       <div className={styles.productDetail}>
         <div className={styles.content}>
-          <div className={styles.error}>Товар не найден</div>
+          <div className={styles.error}>{errorMessage}</div>
           <Button onClick={() => navigate('/products')}>Вернуться к списку</Button>
         </div>
       </div>
