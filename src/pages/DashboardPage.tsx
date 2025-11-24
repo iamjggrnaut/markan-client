@@ -15,6 +15,8 @@ export const DashboardPage = () => {
   const queryClient = useQueryClient();
   const [period, setPeriod] = useState<string>(DEFAULT_PERIOD);
   const [source, setSource] = useState('marketplace');
+  const [metricsUnit, setMetricsUnit] = useState<'rub' | 'pieces'>('pieces');
+  const [financeUnit, setFinanceUnit] = useState<'rub' | 'pieces'>('pieces');
 
   // Маппинг периодов для KPI API (ожидает 'day' | 'week' | 'month')
   const kpiPeriodMap: Record<string, 'day' | 'week' | 'month'> = {
@@ -432,80 +434,110 @@ export const DashboardPage = () => {
             <div className={styles.metricsHeader}>
               <h3 className={styles.metricsTitle}>Общие показатели</h3>
               <div className={styles.metricsToggle}>
-                <button className={styles.toggleButton}>руб.</button>
-                <button className={`${styles.toggleButton} ${styles.toggleButtonActive}`}>шт.</button>
+                <button 
+                  className={`${styles.toggleButton} ${metricsUnit === 'rub' ? styles.toggleButtonActive : ''}`}
+                  onClick={() => setMetricsUnit('rub')}
+                >
+                  руб.
+                </button>
+                <button 
+                  className={`${styles.toggleButton} ${metricsUnit === 'pieces' ? styles.toggleButtonActive : ''}`}
+                  onClick={() => setMetricsUnit('pieces')}
+                >
+                  шт.
+                </button>
               </div>
             </div>
             <div className={styles.metricsList}>
               {[
                 { 
                   label: 'Выручка', 
-                  value: (stats as any)?.totalRevenue || 0, 
+                  valueRub: (stats as any)?.totalRevenue || 0,
+                  valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.revenue?.changePercent || 0,
-                  unit: '₽'
+                  canSwitch: true
                 },
                 { 
                   label: 'Прибыль', 
-                  value: (stats as any)?.totalProfit || 0, 
+                  valueRub: (stats as any)?.totalProfit || 0,
+                  valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.profit?.changePercent || 0,
-                  unit: '₽'
+                  canSwitch: true
                 },
                 { 
                   label: 'Заказы', 
-                  value: (stats as any)?.totalSales || 0, 
+                  valueRub: (stats as any)?.totalRevenue || 0,
+                  valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.orders?.changePercent || 0,
-                  unit: 'шт.'
+                  canSwitch: true
                 },
                 { 
                   label: 'Средний чек', 
-                  value: (stats as any)?.averageOrderValue || 0, 
+                  valueRub: (stats as any)?.averageOrderValue || 0,
+                  valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.averageOrderValue?.changePercent || 0,
-                  unit: '₽'
+                  canSwitch: true
                 },
                 { 
                   label: 'Конверсия', 
-                  value: (stats as any)?.conversionRate ? ((stats as any).conversionRate * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0, 
+                  valueRub: (stats as any)?.conversionRate ? ((stats as any).conversionRate * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0,
+                  valuePieces: (stats as any)?.conversionRate ? ((stats as any).conversionRate * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0,
                   change: (kpi as any)?.revenue?.changePercent || 0,
-                  unit: '%'
+                  unit: '%',
+                  canSwitch: false
                 },
                 { 
                   label: 'ROI', 
-                  value: (kpi as any)?.roi || ((stats as any)?.totalRevenue && (stats as any)?.totalProfit ? (((stats as any).totalProfit / ((stats as any).totalRevenue - (stats as any).totalProfit)) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0), 
+                  valueRub: (kpi as any)?.roi || ((stats as any)?.totalRevenue && (stats as any)?.totalProfit ? (((stats as any).totalProfit / ((stats as any).totalRevenue - (stats as any).totalProfit)) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0),
+                  valuePieces: (kpi as any)?.roi || ((stats as any)?.totalRevenue && (stats as any)?.totalProfit ? (((stats as any).totalProfit / ((stats as any).totalRevenue - (stats as any).totalProfit)) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0),
                   change: (kpi as any)?.profit?.changePercent || 0,
-                  unit: '%'
+                  unit: '%',
+                  canSwitch: false
                 },
                 { 
                   label: 'Маржинальность', 
-                  value: (kpi as any)?.margin || ((stats as any)?.totalRevenue && (stats as any)?.totalProfit ? (((stats as any).totalProfit / (stats as any).totalRevenue) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0), 
+                  valueRub: (kpi as any)?.margin || ((stats as any)?.totalRevenue && (stats as any)?.totalProfit ? (((stats as any).totalProfit / (stats as any).totalRevenue) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0),
+                  valuePieces: (kpi as any)?.margin || ((stats as any)?.totalRevenue && (stats as any)?.totalProfit ? (((stats as any).totalProfit / (stats as any).totalRevenue) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0),
                   change: (kpi as any)?.profit?.changePercent || 0,
-                  unit: '%'
+                  unit: '%',
+                  canSwitch: false
                 },
                 { 
                   label: 'Рост продаж', 
-                  value: (stats as any)?.growthRate ? ((stats as any).growthRate * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0, 
+                  valueRub: (stats as any)?.growthRate ? ((stats as any).growthRate * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0,
+                  valuePieces: (stats as any)?.growthRate ? ((stats as any).growthRate * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0,
                   change: (stats as any)?.growthRate ? ((stats as any).growthRate * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0,
-                  unit: '%'
+                  unit: '%',
+                  canSwitch: false
                 },
-              ].map((item, index) => (
-                <div key={index} className={styles.metricItem}>
-                  {item.change !== 0 && (
-                    <>
-                      {item.change > 0 ? (
-                        <FaArrowUp className={styles.metricChangeIcon} />
-                      ) : (
-                        <FaArrowUp className={styles.metricChangeIcon} style={{ transform: 'rotate(180deg)' }} />
-                      )}
-                      <span className={styles.metricChange}>
-                        {item.change > 0 ? '+' : ''}{item.change.toFixed(0)}%
-                      </span>
-                    </>
-                  )}
-                  <span className={styles.metricLabel}>{item.label}</span>
-                  <span className={styles.metricValue}>
-                    {item.value.toLocaleString('ru-RU', { maximumFractionDigits: item.unit === '%' ? 1 : 0 })} {item.unit}
-                  </span>
-                </div>
-              ))}
+              ].map((item, index) => {
+                const displayValue = item.canSwitch 
+                  ? (metricsUnit === 'rub' ? item.valueRub : item.valuePieces)
+                  : item.valueRub;
+                const displayUnit = item.unit || (metricsUnit === 'rub' ? '₽' : 'шт.');
+                const isPercentage = item.unit === '%';
+                
+                return (
+                  <div key={index} className={styles.metricItem}>
+                    {item.change !== 0 && (
+                      <>
+                        {item.change > 0 ? (
+                          <FaArrowUp className={styles.metricChangeIcon} />
+                        ) : (
+                          <FaArrowUp className={styles.metricChangeIcon} style={{ transform: 'rotate(180deg)' }} />
+                        )}
+                        <span className={styles.metricChange}>
+                          {item.change > 0 ? '+' : ''}{item.change.toFixed(0)}%
+                        </span>
+                      </>
+                    )}
+                    <span className={styles.metricLabel}>{item.label}</span>
+                    <span className={styles.metricValue}>
+                      {displayValue.toLocaleString('ru-RU', { maximumFractionDigits: isPercentage ? 1 : 0 })} {displayUnit}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </Card>
 
@@ -513,94 +545,124 @@ export const DashboardPage = () => {
             <div className={styles.metricsHeader}>
               <h3 className={styles.metricsTitle}>Финансы</h3>
               <div className={styles.metricsToggle}>
-                <button className={styles.toggleButton}>руб.</button>
-                <button className={`${styles.toggleButton} ${styles.toggleButtonActive}`}>шт.</button>
+                <button 
+                  className={`${styles.toggleButton} ${financeUnit === 'rub' ? styles.toggleButtonActive : ''}`}
+                  onClick={() => setFinanceUnit('rub')}
+                >
+                  руб.
+                </button>
+                <button 
+                  className={`${styles.toggleButton} ${financeUnit === 'pieces' ? styles.toggleButtonActive : ''}`}
+                  onClick={() => setFinanceUnit('pieces')}
+                >
+                  шт.
+                </button>
               </div>
             </div>
             <div className={styles.metricsList}>
               {[
                 { 
                   label: 'Выручка', 
-                  value: (stats as any)?.totalRevenue || 0, 
+                  valueRub: (stats as any)?.totalRevenue || 0,
+                  valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.revenue?.changePercent || 0,
-                  unit: '₽'
+                  canSwitch: true
                 },
                 { 
                   label: 'Себестоимость', 
-                  value: (stats as any)?.totalRevenue && (stats as any)?.totalProfit 
+                  valueRub: (stats as any)?.totalRevenue && (stats as any)?.totalProfit 
                     ? ((stats as any).totalRevenue - (stats as any).totalProfit) 
-                    : ((stats as any)?.totalRevenue || 0) * 0.6, 
+                    : ((stats as any)?.totalRevenue || 0) * 0.6,
+                  valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.profit?.changePercent ? -(kpi as any).profit.changePercent : 0,
-                  unit: '₽'
+                  canSwitch: true
                 },
                 { 
                   label: 'Валовая прибыль', 
-                  value: (stats as any)?.totalProfit || 0, 
+                  valueRub: (stats as any)?.totalProfit || 0,
+                  valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.profit?.changePercent || 0,
-                  unit: '₽'
+                  canSwitch: true
                 },
                 { 
                   label: 'Маржинальность', 
-                  value: (kpi as any)?.margin || ((stats as any)?.totalRevenue && (stats as any)?.totalProfit ? (((stats as any).totalProfit / (stats as any).totalRevenue) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0), 
+                  valueRub: (kpi as any)?.margin || ((stats as any)?.totalRevenue && (stats as any)?.totalProfit ? (((stats as any).totalProfit / (stats as any).totalRevenue) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0),
+                  valuePieces: (kpi as any)?.margin || ((stats as any)?.totalRevenue && (stats as any)?.totalProfit ? (((stats as any).totalProfit / (stats as any).totalRevenue) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0),
                   change: (kpi as any)?.profit?.changePercent || 0,
-                  unit: '%'
+                  unit: '%',
+                  canSwitch: false
                 },
                 { 
                   label: 'ROI', 
-                  value: (kpi as any)?.roi || ((stats as any)?.totalRevenue && (stats as any)?.totalProfit ? (((stats as any).totalProfit / ((stats as any).totalRevenue - (stats as any).totalProfit)) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0), 
+                  valueRub: (kpi as any)?.roi || ((stats as any)?.totalRevenue && (stats as any)?.totalProfit ? (((stats as any).totalProfit / ((stats as any).totalRevenue - (stats as any).totalProfit)) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0),
+                  valuePieces: (kpi as any)?.roi || ((stats as any)?.totalRevenue && (stats as any)?.totalProfit ? (((stats as any).totalProfit / ((stats as any).totalRevenue - (stats as any).totalProfit)) * CALCULATION_CONSTANTS.PERCENTAGE_MULTIPLIER) : 0),
                   change: (kpi as any)?.profit?.changePercent || 0,
-                  unit: '%'
+                  unit: '%',
+                  canSwitch: false
                 },
                 { 
                   label: 'Налоги', 
-                  value: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.TAX_RATE, 
+                  valueRub: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.DEFAULT_TAX_RATE,
+                  valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.revenue?.changePercent || 0,
-                  unit: '₽'
+                  canSwitch: true
                 },
                 { 
                   label: 'Комиссии', 
-                  value: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.MARKETPLACE_COMMISSION, 
+                  valueRub: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.DEFAULT_MARKETPLACE_COMMISSION,
+                  valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.revenue?.changePercent || 0,
-                  unit: '₽'
+                  canSwitch: true
                 },
                 { 
                   label: 'Логистика', 
-                  value: ((stats as any)?.totalRevenue || 0) * 0.05, 
+                  valueRub: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.DEFAULT_LOGISTICS_COST,
+                  valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.revenue?.changePercent || 0,
-                  unit: '₽'
+                  canSwitch: true
                 },
                 { 
                   label: 'Реклама', 
-                  value: ((stats as any)?.totalRevenue || 0) * 0.08, 
+                  valueRub: ((stats as any)?.totalRevenue || 0) * CALCULATION_CONSTANTS.DEFAULT_ADVERTISING_COST,
+                  valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.revenue?.changePercent || 0,
-                  unit: '₽'
+                  canSwitch: true
                 },
                 { 
                   label: 'Чистая прибыль', 
-                  value: (stats as any)?.totalProfit ? ((stats as any).totalProfit * 0.7) : 0, 
+                  valueRub: (stats as any)?.totalProfit ? ((stats as any).totalProfit * 0.7) : 0,
+                  valuePieces: (stats as any)?.totalSales || 0,
                   change: (kpi as any)?.profit?.changePercent || 0,
-                  unit: '₽'
+                  canSwitch: true
                 },
-              ].map((item, index) => (
-                <div key={index} className={styles.metricItem}>
-                  {item.change !== 0 && (
-                    <>
-                      {item.change > 0 ? (
-                        <FaArrowUp className={styles.metricChangeIcon} />
-                      ) : (
-                        <FaArrowUp className={styles.metricChangeIcon} style={{ transform: 'rotate(180deg)' }} />
-                      )}
-                      <span className={styles.metricChange}>
-                        {item.change > 0 ? '+' : ''}{item.change.toFixed(0)}%
-                      </span>
-                    </>
-                  )}
-                  <span className={styles.metricLabel}>{item.label}</span>
-                  <span className={styles.metricValue}>
-                    {item.value.toLocaleString('ru-RU')} {item.unit || '₽'}
-                  </span>
-                </div>
-              ))}
+              ].map((item, index) => {
+                const displayValue = item.canSwitch 
+                  ? (financeUnit === 'rub' ? item.valueRub : item.valuePieces)
+                  : item.valueRub;
+                const displayUnit = item.unit || (financeUnit === 'rub' ? '₽' : 'шт.');
+                const isPercentage = item.unit === '%';
+                
+                return (
+                  <div key={index} className={styles.metricItem}>
+                    {item.change !== 0 && (
+                      <>
+                        {item.change > 0 ? (
+                          <FaArrowUp className={styles.metricChangeIcon} />
+                        ) : (
+                          <FaArrowUp className={styles.metricChangeIcon} style={{ transform: 'rotate(180deg)' }} />
+                        )}
+                        <span className={styles.metricChange}>
+                          {item.change > 0 ? '+' : ''}{item.change.toFixed(0)}%
+                        </span>
+                      </>
+                    )}
+                    <span className={styles.metricLabel}>{item.label}</span>
+                    <span className={styles.metricValue}>
+                      {displayValue.toLocaleString('ru-RU', { maximumFractionDigits: isPercentage ? 1 : 0 })} {displayUnit}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </Card>
         </div>
